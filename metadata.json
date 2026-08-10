@@ -1,0 +1,5 @@
+{
+  "name": "WeConnect",
+  "description": "A pixel-perfect WhatsApp Web clone with real-time chat, voice/video calls, and AI assistance.",
+  "requestFramePermissions": ["camera", "microphone"]
+}
