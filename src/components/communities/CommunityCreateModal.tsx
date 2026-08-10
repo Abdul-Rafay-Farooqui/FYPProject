@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, UsersRound, Camera, Check } from 'lucide-react';
-import { CommunitiesAPI, ContactsAPI, MediaAPI } from '@/lib/api/endpoints';
+import { X, UsersRound, Camera, Check, Search } from 'lucide-react';
+import { CommunitiesAPI, UsersAPI, MediaAPI } from '@/lib/api/endpoints';
 
 interface Props {
   open: boolean;
@@ -20,8 +20,11 @@ export default function CommunityCreateModal({
   const [description, setDescription] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [contacts, setContacts] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,10 +35,10 @@ export default function CommunityCreateModal({
     setDescription('');
     setAvatarUrl(null);
     setSelected([]);
+    setSelectedUsers([]);
+    setSearchQuery('');
+    setSearchResults([]);
     setError(null);
-    ContactsAPI.list()
-      .then(setContacts)
-      .catch(() => setContacts([]));
   }, [open]);
 
   if (!open) return null;
@@ -54,10 +57,29 @@ export default function CommunityCreateModal({
     }
   };
 
-  const toggle = (id: string) =>
+  const toggle = (user: any) => {
+    const id = user.id;
     setSelected((p) =>
       p.includes(id) ? p.filter((x) => x !== id) : [...p, id],
     );
+    setSelectedUsers((p) =>
+      p.find((u) => u.id === id) ? p.filter((u) => u.id !== id) : [...p, user],
+    );
+  };
+
+  const handleMemberSearch = async (q: string) => {
+    setSearchQuery(q);
+    if (!q.trim()) { setSearchResults([]); return; }
+    setSearching(true);
+    try {
+      const data = await UsersAPI.search(q);
+      setSearchResults(data || []);
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
 
   const submit = async () => {
     if (!name.trim()) return;
@@ -171,45 +193,71 @@ export default function CommunityCreateModal({
           </>
         ) : (
           <>
-            <div className="px-4 py-3 border-b border-[#222d34] text-[#8696a0] text-xs">
-              {selected.length} selected
+            <div className="px-4 py-3 border-b border-[#222d34]">
+              <div className="flex items-center gap-2 bg-[#202c33] rounded px-3 py-2">
+                <Search className="w-4 h-4 text-[#8696a0] flex-shrink-0" />
+                <input
+                  placeholder="Search by name or phone"
+                  value={searchQuery}
+                  onChange={(e) => handleMemberSearch(e.target.value)}
+                  className="bg-transparent flex-1 outline-none text-[#e9edef] text-sm"
+                  autoFocus
+                />
+              </div>
+              {selected.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {selectedUsers.map((u) => (
+                    <span
+                      key={u.id}
+                      className="flex items-center gap-1 bg-[#00a884]/20 text-[#00a884] text-xs px-2 py-0.5 rounded-full"
+                    >
+                      {u.display_name}
+                      <button onClick={() => toggle(u)} className="hover:text-white">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar">
-              {contacts.map((c: any) => {
-                const cu = c.contact;
-                const sel = selected.includes(cu.id);
-                return (
-                  <button
-                    key={c.id}
-                    onClick={() => toggle(cu.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#202c33] ${
-                      sel ? 'bg-[#202c33]' : ''
-                    }`}
-                  >
-                    {cu.avatar_url ? (
-                      <img
-                        src={cu.avatar_url}
-                        className="w-10 h-10 rounded-full object-cover"
-                        alt={cu.display_name}
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-[#2a3942] flex items-center justify-center">
-                        <span className="text-[#e9edef]">
-                          {cu.display_name?.[0]?.toUpperCase()}
-                        </span>
+              {searching ? (
+                <div className="flex justify-center p-6">
+                  <div className="w-5 h-5 border-2 border-[#00a884] border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : !searchQuery.trim() ? (
+                <div className="text-[#8696a0] text-sm text-center p-6">
+                  Type a name or phone to search for people to add
+                </div>
+              ) : searchResults.length === 0 ? (
+                <div className="text-[#8696a0] text-sm text-center p-6">No users found</div>
+              ) : (
+                searchResults.map((u: any) => {
+                  const sel = selected.includes(u.id);
+                  return (
+                    <button
+                      key={u.id}
+                      onClick={() => toggle(u)}
+                      className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#202c33] ${sel ? 'bg-[#202c33]' : ''}`}
+                    >
+                      {u.avatar_url ? (
+                        <img src={u.avatar_url} className="w-10 h-10 rounded-full object-cover" alt={u.display_name} />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-[#2a3942] flex items-center justify-center">
+                          <span className="text-[#e9edef]">{u.display_name?.[0]?.toUpperCase()}</span>
+                        </div>
+                      )}
+                      <div className="flex-1 text-left min-w-0">
+                        <div className="text-[#e9edef] text-sm truncate">{u.display_name}</div>
+                        <div className="text-[#8696a0] text-xs">{u.phone}</div>
                       </div>
-                    )}
-                    <span className="text-[#e9edef] text-sm flex-1 text-left">
-                      {cu.display_name}
-                    </span>
-                    {sel && (
-                      <div className="w-5 h-5 rounded-full bg-[#00a884] flex items-center justify-center">
-                        <Check className="w-3 h-3 text-[#111b21]" />
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
+                      {sel && (
+                        <div className="w-5 h-5 rounded-full bg-[#00a884] flex items-center justify-center flex-shrink-0">
+                          <Check className="w-3 h-3 text-[#111b21]" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })
+              )}
             </div>
             <div className="bg-[#202c33] px-4 py-3 flex justify-between">
               <button
