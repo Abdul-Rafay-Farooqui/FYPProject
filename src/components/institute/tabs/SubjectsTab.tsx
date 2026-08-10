@@ -172,15 +172,10 @@ export default function SubjectsTab({ subjects, instituteId, isAdmin, onRefresh 
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-[#e9edef] text-2xl font-semibold">Subjects</h2>
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <h2 className="text-[#e9edef] text-lg md:text-2xl font-semibold">Subjects</h2>
         {isAdmin && (
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 rounded bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90"
-          >
-            + Add Subject
-          </button>
+          <button onClick={() => setShowAddModal(true)} className="px-3 py-1.5 rounded text-xs md:text-sm bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 whitespace-nowrap">+ Add Subject</button>
         )}
       </div>
       {subjects.length === 0 ? (
@@ -199,59 +194,30 @@ export default function SubjectsTab({ subjects, instituteId, isAdmin, onRefresh 
             const enrolledStudents = getEnrolledStudents(subject.id);
             return (
               <div key={subject.id} className="bg-[#111b21] rounded-lg p-4 border border-[#222d34]">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="text-[#e9edef] font-medium text-lg">{subject.name}</h3>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[#e9edef] font-medium">{subject.name}</h3>
                     {subject.code && <p className="text-[#8696a0] text-sm mt-1">Code: {subject.code}</p>}
                     {subject.course_code && (
                       <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-[#00a884]/10 border border-[#00a884]/30 rounded-lg">
-                        <svg className="w-4 h-4 text-[#00a884]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                        </svg>
+                        <svg className="w-4 h-4 text-[#00a884]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
                         <span className="text-[#00a884] text-sm font-mono font-semibold">{subject.course_code}</span>
                       </div>
                     )}
                   </div>
                   {isAdmin && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEnrollStudents(subject)}
-                        className="px-3 py-1.5 rounded text-sm bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 flex items-center gap-1"
-                        title="Enroll students"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                        Enroll
+                    <div className="flex flex-wrap gap-1.5 flex-shrink-0">
+                      <button onClick={() => handleEnrollStudents(subject)} className="px-2 py-1 rounded text-xs bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 flex items-center gap-1 whitespace-nowrap">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>Enroll
                       </button>
-                      <button
-                        onClick={() => handleGenerateCourseCode(subject)}
-                        className="px-3 py-1.5 rounded text-sm bg-[#1e2a30] text-[#e9edef] hover:bg-[#2a3942] flex items-center gap-1"
-                        title="Generate course code"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                        </svg>
-                        Code
+                      <button onClick={() => handleGenerateCourseCode(subject)} className="px-2 py-1 rounded text-xs bg-[#1e2a30] text-[#e9edef] hover:bg-[#2a3942] flex items-center gap-1 whitespace-nowrap">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>Code
                       </button>
-                      <button
-                        onClick={() => handleAssignTeacher(subject)}
-                        className="px-3 py-1.5 rounded text-sm bg-[#1e2a30] text-[#e9edef] hover:bg-[#2a3942] flex items-center gap-1"
-                        title="Assign teacher"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                        </svg>
-                        Teacher
+                      <button onClick={() => handleAssignTeacher(subject)} className="px-2 py-1 rounded text-xs bg-[#1e2a30] text-[#e9edef] hover:bg-[#2a3942] flex items-center gap-1 whitespace-nowrap">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>Teacher
                       </button>
-                      <button
-                        onClick={() => handleDeleteSubject(subject.id)}
-                        className="text-red-400 hover:text-red-300 p-2"
-                        title="Delete subject"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                      <button onClick={() => handleDeleteSubject(subject.id)} className="p-1.5 text-red-400 hover:text-red-300">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>
                   )}

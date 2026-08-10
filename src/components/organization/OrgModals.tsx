@@ -29,7 +29,7 @@ const Backdrop = ({ onClose, children }: { onClose: () => void; children: React.
 
 const ModalCard = ({ children }: { children: React.ReactNode }) => (
   <div
-    className="relative w-[480px] max-w-[95vw] rounded-2xl border border-[#2a3942] p-7 shadow-2xl"
+    className="relative w-[480px] max-w-[95vw] max-h-[90vh] overflow-y-auto rounded-2xl border border-[#2a3942] p-7 shadow-2xl"
     style={{
       background: 'linear-gradient(145deg, #141f26 0%, #0d1a21 100%)',
       boxShadow: '0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)',

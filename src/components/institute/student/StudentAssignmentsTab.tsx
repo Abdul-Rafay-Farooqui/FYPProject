@@ -272,7 +272,7 @@ export default function StudentAssignmentsTab({
       <div className="lg:col-span-2">
         {selectedAssignment ? (
           <div className="bg-[#111b21] rounded-lg border border-[#222d34] p-6">
-            <h2 className="text-[#e9edef] text-2xl font-semibold mb-2">
+            <h2 className="text-[#e9edef] text-lg md:text-2xl font-semibold mb-2">
               {selectedAssignment.title}
             </h2>
             <p className="text-[#00a884] text-sm font-medium mb-4">
@@ -291,7 +291,7 @@ export default function StudentAssignmentsTab({
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                 <div>
                   <p className="text-[#8696a0] text-sm">Due Date</p>
                   <p className="text-[#e9edef] font-medium">

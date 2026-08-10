@@ -521,29 +521,30 @@ export default function InstituteHeader({
     <button
       key={tab.id}
       onClick={() => setActiveTab(tab.id)}
-      className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 ${
+      className={`flex items-center gap-1.5 px-2 md:px-4 py-2.5 md:py-3 text-xs md:text-sm font-medium whitespace-nowrap transition-colors border-b-2 flex-shrink-0 ${
         activeTab === tab.id
           ? "text-[#00a884] border-[#00a884]"
           : "text-[#8696a0] border-transparent hover:text-[#e9edef]"
       }`}
     >
       {tab.icon}
-      {tab.label}
+      <span className="hidden sm:inline">{tab.label}</span>
+      <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
     </button>
   );
 
   return (
     <div className="border-b border-[#222d34] bg-[#111b21]">
-      <div className="px-6 py-4 flex items-center justify-between">
-        <h1 className="text-[#e9edef] text-xl font-semibold">
+      <div className="px-3 md:px-6 py-3 md:py-4 flex items-center justify-between">
+        <h1 className="text-[#e9edef] text-base md:text-xl font-semibold truncate">
           {instituteName}
         </h1>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-shrink-0">
           {/* Add Members Button */}
           {isAdmin && onAddMembers && (
             <button
               onClick={onAddMembers}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 transition-colors"
+              className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 transition-colors whitespace-nowrap"
             >
               + Add Members
             </button>
@@ -552,13 +553,13 @@ export default function InstituteHeader({
       </div>
 
       {/* Tabs row 1 */}
-      <div className="px-6 flex gap-1 overflow-x-auto custom-scrollbar pb-0">
+      <div className="px-2 md:px-6 flex gap-0 overflow-x-auto no-scrollbar pb-0">
         {row1Tabs.map(tabBtn)}
       </div>
 
       {/* Tabs row 2 — teacher only */}
       {isTeacher && row2Tabs.length > 0 && (
-        <div className="px-6 flex gap-1 border-t border-[#222d34]/50 pb-0">
+        <div className="px-2 md:px-6 flex gap-0 border-t border-[#222d34]/50 pb-0 overflow-x-auto no-scrollbar">
           {row2Tabs.map(tabBtn)}
         </div>
       )}

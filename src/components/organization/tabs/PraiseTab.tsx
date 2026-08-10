@@ -189,16 +189,16 @@ const PraiseTab = ({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <h3 className="text-[#e9edef] text-lg font-semibold">Team Recognition</h3>
-          <p className="text-[#8696a0] text-sm">Celebrate your teammates' achievements</p>
+          <h3 className="text-[#e9edef] text-base md:text-lg font-semibold">Team Recognition</h3>
+          <p className="text-[#8696a0] text-xs md:text-sm">Celebrate your teammates' achievements</p>
         </div>
         <button
           onClick={() => setShowPraiseModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-[#00a884] to-[#008069] hover:from-[#008069] hover:to-[#00a884] text-white transition-all shadow-lg"
+          className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium bg-gradient-to-r from-[#00a884] to-[#008069] hover:from-[#008069] hover:to-[#00a884] text-white transition-all shadow-lg flex-shrink-0"
         >
-          <Award className="w-4 h-4" /> Give Praise
+          <Award className="w-3.5 h-3.5 md:w-4 md:h-4" /> Give Praise
         </button>
       </div>
 
@@ -355,7 +355,7 @@ const PraiseTab = ({
                 <label className="block text-[#8696a0] text-xs uppercase tracking-wider mb-2">
                   Choose a badge *
                 </label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {PRAISE_BADGES.map(badge => {
                     const BadgeIcon = badge.icon;
                     return (

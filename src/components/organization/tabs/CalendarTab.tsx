@@ -293,31 +293,31 @@ const CalendarTab = ({
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-1 md:gap-3">
           <button
             onClick={handlePrevMonth}
-            className="p-2 rounded-lg hover:bg-[#202c33] text-[#8696a0] hover:text-[#e9edef] transition-all"
+            className="p-1.5 md:p-2 rounded-lg hover:bg-[#202c33] text-[#8696a0] hover:text-[#e9edef] transition-all"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
           </button>
-          <h2 className="text-[#e9edef] text-lg font-semibold min-w-[200px] text-center">
+          <h2 className="text-[#e9edef] text-sm md:text-lg font-semibold min-w-[130px] md:min-w-[200px] text-center">
             {MONTHS[currentMonth]} {currentYear}
           </h2>
           <button
             onClick={handleNextMonth}
-            className="p-2 rounded-lg hover:bg-[#202c33] text-[#8696a0] hover:text-[#e9edef] transition-all"
+            className="p-1.5 md:p-2 rounded-lg hover:bg-[#202c33] text-[#8696a0] hover:text-[#e9edef] transition-all"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 md:gap-2">
           {/* View toggle */}
           <div className="flex bg-[#111b21] border border-[#222d34] rounded-lg overflow-hidden">
             <button
               onClick={() => setViewMode('month')}
-              className={`px-3 py-1.5 text-xs font-medium transition-all ${
+              className={`px-2 md:px-3 py-1.5 text-xs font-medium transition-all ${
                 viewMode === 'month'
                   ? 'bg-[#00a884] text-[#0b141a]'
                   : 'text-[#8696a0] hover:text-[#e9edef]'
@@ -327,7 +327,7 @@ const CalendarTab = ({
             </button>
             <button
               onClick={() => setViewMode('agenda')}
-              className={`px-3 py-1.5 text-xs font-medium transition-all ${
+              className={`px-2 md:px-3 py-1.5 text-xs font-medium transition-all ${
                 viewMode === 'agenda'
                   ? 'bg-[#00a884] text-[#0b141a]'
                   : 'text-[#8696a0] hover:text-[#e9edef]'
@@ -339,38 +339,37 @@ const CalendarTab = ({
 
           <button
             onClick={handleAddEvent}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#00a884] hover:bg-[#008069] text-[#0b141a] transition-all"
+            className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium bg-[#00a884] hover:bg-[#008069] text-[#0b141a] transition-all"
           >
-            <Plus className="w-4 h-4" /> New Event
+            <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="hidden sm:inline">New Event</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </div>
       </div>
 
       {/* Legend - only show in month view */}
       {viewMode === 'month' && (
-        <div className="flex items-center gap-4 px-4 py-2 bg-[#111b21] border border-[#222d34] rounded-lg">
+        <div className="flex flex-wrap items-center gap-2 md:gap-4 px-3 md:px-4 py-2 bg-[#111b21] border border-[#222d34] rounded-lg">
           <span className="text-[#8696a0] text-xs font-medium">Event Types:</span>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-1 rounded-full bg-blue-500" />
-            <span className="text-[#e9edef] text-xs">Meeting</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-1 rounded-full bg-purple-500" />
-            <span className="text-[#e9edef] text-xs">Event</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-1 rounded-full bg-yellow-500" />
-            <span className="text-[#e9edef] text-xs">Reminder</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-1 rounded-full bg-red-500" />
-            <span className="text-[#e9edef] text-xs">Deadline</span>
+          <div className="flex flex-wrap items-center gap-2 md:gap-4">
+            {[
+              { color: 'bg-blue-500', label: 'Meeting' },
+              { color: 'bg-purple-500', label: 'Event' },
+              { color: 'bg-yellow-500', label: 'Reminder' },
+              { color: 'bg-red-500', label: 'Deadline' },
+            ].map(({ color, label }) => (
+              <div key={label} className="flex items-center gap-1">
+                <div className={`w-3 h-1 rounded-full ${color}`} />
+                <span className="text-[#e9edef] text-xs">{label}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
       {viewMode === 'month' ? (
-        <div className="grid grid-cols-[1fr_300px] gap-4">
+        <div className="flex flex-col md:grid md:grid-cols-[1fr_280px] gap-4">
           {/* Calendar Grid */}
           <div className="bg-[#111b21] border border-[#222d34] rounded-xl p-4">
             {/* Day headers */}

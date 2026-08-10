@@ -151,24 +151,24 @@ export default function TeacherOverview({ instituteId }: TeacherOverviewProps) {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-[#111b21] rounded-xl border border-[#222d34] p-6">
+      <div className="bg-[#111b21] rounded-xl border border-[#222d34] p-4 md:p-6">
         <h3 className="text-[#e9edef] text-lg font-semibold mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button className="p-4 bg-[#0b141a] rounded-lg border border-[#222d34] hover:border-[#00a884] transition-colors text-center">
-            <svg className="w-8 h-8 text-[#00a884] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            <p className="text-[#e9edef] text-sm font-medium">Create Assignment</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <button className="p-3 md:p-4 bg-[#0b141a] rounded-lg border border-[#222d34] hover:border-[#00a884] transition-colors text-center">
+            <svg className="w-7 h-7 text-[#00a884] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            <p className="text-[#e9edef] text-xs md:text-sm font-medium">Create Assignment</p>
           </button>
-          <button className="p-4 bg-[#0b141a] rounded-lg border border-[#222d34] hover:border-[#00a884] transition-colors text-center">
-            <svg className="w-8 h-8 text-[#00a884] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            <p className="text-[#e9edef] text-sm font-medium">Create Quiz</p>
+          <button className="p-3 md:p-4 bg-[#0b141a] rounded-lg border border-[#222d34] hover:border-[#00a884] transition-colors text-center">
+            <svg className="w-7 h-7 text-[#00a884] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            <p className="text-[#e9edef] text-xs md:text-sm font-medium">Create Quiz</p>
           </button>
-          <button className="p-4 bg-[#0b141a] rounded-lg border border-[#222d34] hover:border-[#00a884] transition-colors text-center">
-            <svg className="w-8 h-8 text-[#00a884] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-            <p className="text-[#e9edef] text-sm font-medium">Schedule Class</p>
+          <button className="p-3 md:p-4 bg-[#0b141a] rounded-lg border border-[#222d34] hover:border-[#00a884] transition-colors text-center">
+            <svg className="w-7 h-7 text-[#00a884] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            <p className="text-[#e9edef] text-xs md:text-sm font-medium">Schedule Class</p>
           </button>
-          <button className="p-4 bg-[#0b141a] rounded-lg border border-[#222d34] hover:border-[#00a884] transition-colors text-center">
-            <svg className="w-8 h-8 text-[#00a884] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-            <p className="text-[#e9edef] text-sm font-medium">Upload Resource</p>
+          <button className="p-3 md:p-4 bg-[#0b141a] rounded-lg border border-[#222d34] hover:border-[#00a884] transition-colors text-center">
+            <svg className="w-7 h-7 text-[#00a884] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+            <p className="text-[#e9edef] text-xs md:text-sm font-medium">Upload Resource</p>
           </button>
         </div>
       </div>

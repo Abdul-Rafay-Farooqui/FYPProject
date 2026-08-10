@@ -23,12 +23,9 @@ export default function TeacherQuizzesTab({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-[#e9edef] text-2xl font-semibold">Quizzes</h2>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 rounded bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90"
-        >
+      <div className="flex items-center justify-between mb-4 md:mb-6">
+        <h2 className="text-[#e9edef] text-lg md:text-2xl font-semibold">Quizzes</h2>
+        <button onClick={() => setShowCreateModal(true)} className="px-3 py-1.5 rounded text-xs md:text-sm bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 whitespace-nowrap">
           + Create Quiz
         </button>
       </div>
@@ -75,7 +72,7 @@ export default function TeacherQuizzesTab({
                       {quiz.description}
                     </p>
                   )}
-                  <div className="flex items-center gap-4 text-xs text-[#8696a0]">
+                  <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs text-[#8696a0]">
                     <span>{quiz.questions?.length || 0} questions</span>
                     <span>Total: {quiz.total_marks} marks</span>
                     <span>Duration: {quiz.duration_minutes} min</span>
@@ -345,7 +342,7 @@ function CreateQuizModal({
                     placeholder="Question text"
                   />
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {q.options.map((opt: string, oIndex: number) => (
                       <input
                         key={oIndex}

@@ -339,30 +339,58 @@ const InstituteView = ({ onInstituteChange }: InstituteViewProps) => {
     }
   };
 
-  return (
-    <div className="flex h-full overflow-auto">
-      <InstituteSidebar
-        institutes={institutes}
-        selectedInstitute={selectedInstitute}
-        setSelectedInstitute={handleSelectInstitute}
-        isLoading={isLoading}
-        error={error}
-        onRetry={loadInstitutes}
-        onCreateInstitute={() => setShowCreateInstitute(true)}
-        onEditInstitute={() => setShowEditInstitute(true)}
-        onDeleteInstitute={() => setShowDeleteInstitute(true)}
-        onAddMembers={() => setShowAddMembers(true)}
-        isAdmin={isAdmin}
-        selectedCourse={selectedCourse}
-        setSelectedCourse={setSelectedCourse}
-      />
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-      <div className="flex-1 flex flex-col bg-[#0b141a]">
+  return (
+    <div className="flex h-full relative overflow-hidden">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar — always in flow on desktop, slide-over on mobile */}
+      <div className={`
+        absolute inset-y-0 left-0 z-40 md:relative md:inset-auto md:z-auto
+        transition-transform duration-300
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        <InstituteSidebar
+          institutes={institutes}
+          selectedInstitute={selectedInstitute}
+          setSelectedInstitute={(id) => { handleSelectInstitute(id); setSidebarOpen(false); }}
+          isLoading={isLoading}
+          error={error}
+          onRetry={loadInstitutes}
+          onCreateInstitute={() => { setShowCreateInstitute(true); setSidebarOpen(false); }}
+          onEditInstitute={() => { setShowEditInstitute(true); setSidebarOpen(false); }}
+          onDeleteInstitute={() => { setShowDeleteInstitute(true); setSidebarOpen(false); }}
+          onAddMembers={() => { setShowAddMembers(true); setSidebarOpen(false); }}
+          isAdmin={isAdmin}
+          selectedCourse={selectedCourse}
+          setSelectedCourse={setSelectedCourse}
+        />
+      </div>
+
+      <div className="flex-1 flex flex-col bg-[#0b141a] min-w-0">
         {error && (
           <div className="m-4 p-3 rounded border border-red-500/40 bg-red-500/10 text-red-200 text-sm">
             {error}
           </div>
         )}
+
+        {/* Mobile sidebar toggle */}
+        <div className="md:hidden flex items-center gap-2 px-4 py-2 bg-[#111b21] border-b border-[#222d34]">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="flex items-center gap-2 text-[#8696a0] hover:text-[#e9edef] text-sm"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            {selectedInstitute ? (institutes.find(i => i.id === selectedInstitute)?.name || 'Institutes') : 'Institutes'}
+          </button>
+        </div>
 
         {selectedInstitute ? (
           <>
@@ -373,7 +401,7 @@ const InstituteView = ({ onInstituteChange }: InstituteViewProps) => {
               userRole={userRole}
               onAddMembers={() => setShowAddMembers(true)}
             />
-            <div className="flex-1 overflow-auto custom-scrollbar p-6">
+            <div className="flex-1 overflow-auto custom-scrollbar p-3 md:p-6">
               {isDataLoading && (
                 <p className="text-[#8696a0] text-sm mb-2">Loading data…</p>
               )}

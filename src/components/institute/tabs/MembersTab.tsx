@@ -29,49 +29,37 @@ export default function MembersTab({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-[#e9edef] text-2xl font-semibold">Members</h2>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setFilter("all")}
-            className={`px-4 py-2 rounded text-sm ${
-              filter === "all"
-                ? "bg-[#00a884] text-[#0b141a]"
-                : "bg-[#1e2a30] text-[#8696a0] hover:bg-[#2a3942]"
-            }`}
-          >
-            All ({members.length})
-          </button>
-          <button
-            onClick={() => setFilter("admin")}
-            className={`px-4 py-2 rounded text-sm ${
-              filter === "admin"
-                ? "bg-[#00a884] text-[#0b141a]"
-                : "bg-[#1e2a30] text-[#8696a0] hover:bg-[#2a3942]"
-            }`}
-          >
-            Admins ({members.filter((m) => m.role === "admin").length})
-          </button>
-          <button
-            onClick={() => setFilter("teacher")}
-            className={`px-4 py-2 rounded text-sm ${
-              filter === "teacher"
-                ? "bg-[#00a884] text-[#0b141a]"
-                : "bg-[#1e2a30] text-[#8696a0] hover:bg-[#2a3942]"
-            }`}
-          >
-            Teachers ({teachers.length})
-          </button>
-          <button
-            onClick={() => setFilter("student")}
-            className={`px-4 py-2 rounded text-sm ${
-              filter === "student"
-                ? "bg-[#00a884] text-[#0b141a]"
-                : "bg-[#1e2a30] text-[#8696a0] hover:bg-[#2a3942]"
-            }`}
-          >
-            Students ({students.length})
-          </button>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <h2 className="text-[#e9edef] text-xl md:text-2xl font-semibold flex-shrink-0">Members</h2>
+        {/* Filter buttons — scrollable row on mobile */}
+        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+          {(["all", "admin", "teacher", "student"] as const).map((f) => {
+            const counts: Record<string, number> = {
+              all: members.length,
+              admin: members.filter((m) => m.role === "admin").length,
+              teacher: teachers.length,
+              student: students.length,
+            };
+            const labels: Record<string, string> = {
+              all: "All",
+              admin: "Admins",
+              teacher: "Teachers",
+              student: "Students",
+            };
+            return (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-3 py-1.5 rounded text-xs whitespace-nowrap flex-shrink-0 ${
+                  filter === f
+                    ? "bg-[#00a884] text-[#0b141a] font-medium"
+                    : "bg-[#1e2a30] text-[#8696a0] hover:bg-[#2a3942]"
+                }`}
+              >
+                {labels[f]} ({counts[f]})
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -85,14 +73,15 @@ export default function MembersTab({
           <p className="text-[#8696a0]">No members found</p>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3">
           {filteredMembers.map((member) => (
             <div
               key={member.id}
-              className="bg-[#111b21] rounded-lg p-4 flex items-center justify-between border border-[#222d34]"
+              className="bg-[#111b21] rounded-lg p-3 md:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-[#222d34]"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-[#00a884]/20 flex items-center justify-center">
+              {/* Left: avatar + info */}
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-11 h-11 flex-shrink-0 rounded-full bg-[#00a884]/20 flex items-center justify-center">
                   {member.user?.avatar_url ? (
                     <img
                       src={member.user.avatar_url}
@@ -105,14 +94,14 @@ export default function MembersTab({
                     </svg>
                   )}
                 </div>
-                <div>
-                  <h3 className="text-[#e9edef] font-medium">
+                <div className="min-w-0">
+                  <h3 className="text-[#e9edef] font-medium text-sm truncate">
                     {member.user?.display_name || "Unknown"}
                     {member.user_id === currentUserId && (
                       <span className="ml-2 text-xs text-[#00a884]">(You)</span>
                     )}
                   </h3>
-                  <p className="text-[#8696a0] text-sm">
+                  <p className="text-[#8696a0] text-xs truncate">
                     {member.user?.email || "No email"}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
@@ -128,22 +117,19 @@ export default function MembersTab({
                       {member.role}
                     </span>
                     {member.status && (
-                      <span className="text-xs text-[#8696a0]">
-                        • {member.status}
-                      </span>
+                      <span className="text-xs text-[#8696a0]">• {member.status}</span>
                     )}
                   </div>
                 </div>
               </div>
 
+              {/* Right: role selector + remove — only for admins */}
               {isAdmin && member.user_id !== currentUserId && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-shrink-0 self-end sm:self-auto">
                   <select
                     value={member.role}
-                    onChange={(e) =>
-                      onUpdateMemberRole(member.id, e.target.value as any)
-                    }
-                    className="px-3 py-1.5 text-sm rounded bg-[#1e2a30] text-[#e9edef] border border-[#222d34] focus:border-[#00a884] outline-none"
+                    onChange={(e) => onUpdateMemberRole(member.id, e.target.value as any)}
+                    className="px-2 py-1.5 text-xs rounded bg-[#1e2a30] text-[#e9edef] border border-[#222d34] focus:border-[#00a884] outline-none"
                   >
                     <option value="student">Student</option>
                     <option value="teacher">Teacher</option>
@@ -151,7 +137,7 @@ export default function MembersTab({
                   </select>
                   <button
                     onClick={() => onRemoveMember(member.id)}
-                    className="px-3 py-1.5 text-sm rounded bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+                    className="px-2 py-1.5 text-xs rounded bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors whitespace-nowrap"
                   >
                     Remove
                   </button>

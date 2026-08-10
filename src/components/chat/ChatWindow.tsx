@@ -265,7 +265,7 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
   let lastDate = '';
 
   return (
-    <div className="h-full flex bg-[#0b141a] relative">
+    <div className="h-full flex bg-[#0b141a] relative overflow-hidden">
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-w-0">
         <div
@@ -347,7 +347,7 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
         )}
 
         {/* Messages area */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-1 custom-scrollbar relative z-10">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden px-2 md:px-4 py-3 space-y-1 custom-scrollbar relative z-10">
           {messages.length === 0 && (
             <div className="flex items-center justify-center h-full">
               <p className="text-[#8696a0] text-sm bg-[#182229] px-4 py-2 rounded-full">

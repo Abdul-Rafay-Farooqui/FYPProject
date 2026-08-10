@@ -64,20 +64,20 @@ export default function TeacherLiveClassesTab({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-[#e9edef] text-2xl font-semibold">Live Classes</h2>
-        <div className="flex gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4 md:mb-6">
+        <h2 className="text-[#e9edef] text-lg md:text-2xl font-semibold">Live Classes</h2>
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setShowCreateModal("schedule")}
-            className="px-4 py-2 rounded bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 font-medium"
+            className="px-3 py-1.5 rounded text-xs md:text-sm bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 font-medium whitespace-nowrap"
           >
             📅 Schedule Class
           </button>
           <button
             onClick={() => setShowCreateModal("instant")}
-            className="px-4 py-2 rounded bg-[#0066cc] text-white hover:bg-[#0066cc]/90 font-medium"
+            className="px-3 py-1.5 rounded text-xs md:text-sm bg-[#0066cc] text-white hover:bg-[#0066cc]/90 font-medium whitespace-nowrap"
           >
-            ▶️ Start Instant Class
+            ▶️ Start Instant
           </button>
         </div>
       </div>
@@ -99,89 +99,60 @@ export default function TeacherLiveClassesTab({
             return (
               <div
                 key={liveClass.id}
-                className="bg-[#111b21] rounded-lg p-4 border border-[#222d34] hover:border-[#00a884]/50 transition"
+                className="bg-[#111b21] rounded-lg p-3 md:p-4 border border-[#222d34] hover:border-[#00a884]/50 transition"
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-[#e9edef] font-medium">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <h3 className="text-[#e9edef] font-medium text-sm md:text-base truncate">
                         {liveClass.title}
                       </h3>
-                      <span
-                        className={`text-xs px-2 py-1 rounded font-medium ${
-                          isLive
-                            ? "bg-red-900/30 text-red-400"
-                            : isScheduled
-                              ? "bg-yellow-900/30 text-yellow-400"
-                              : "bg-gray-900/30 text-gray-400"
-                        }`}
-                      >
-                        {isLive
-                          ? "🔴 Live"
-                          : isScheduled
-                            ? "📅 Scheduled"
-                            : "✓ Ended"}
+                      <span className={`text-xs px-2 py-0.5 rounded font-medium flex-shrink-0 ${
+                        isLive ? "bg-red-900/30 text-red-400" : isScheduled ? "bg-yellow-900/30 text-yellow-400" : "bg-gray-900/30 text-gray-400"
+                      }`}>
+                        {isLive ? "🔴 Live" : isScheduled ? "📅 Scheduled" : "✓ Ended"}
                       </span>
                     </div>
                     {liveClass.description && (
-                      <p className="text-[#8696a0] text-sm mb-2">
-                        {liveClass.description}
-                      </p>
+                      <p className="text-[#8696a0] text-sm mb-2">{liveClass.description}</p>
                     )}
-                    <div className="text-[#8696a0] text-sm space-y-1">
-                      <p>
-                        📅 {new Date(liveClass.scheduled_at).toLocaleString()}
-                      </p>
+                    <div className="text-[#8696a0] text-xs md:text-sm space-y-1">
+                      <p>📅 {new Date(liveClass.scheduled_at).toLocaleString()}</p>
                       <p>⏱️ Duration: {liveClass.duration_minutes} minutes</p>
                       {liveClass.subject?.name && (
-                        <p className="text-[#00a884] font-medium">
-                          📚 Subject: {liveClass.subject.name}
-                        </p>
+                        <p className="text-[#00a884] font-medium">📚 {liveClass.subject.name}</p>
                       )}
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 ml-4">
+                  <div className="flex sm:flex-col gap-2 flex-shrink-0">
                     {isLive && (
                       <button
                         onClick={() => handleJoinClass(liveClass)}
-                        className="px-4 py-2 bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 rounded font-medium text-sm transition whitespace-nowrap"
+                        className="flex-1 sm:flex-none px-3 py-1.5 bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 rounded font-medium text-xs md:text-sm transition whitespace-nowrap"
                       >
-                        📹 Join Meeting
+                        📹 Join
                       </button>
                     )}
                     {isScheduled && (
                       <button
                         onClick={() => {
-                          InstituteAPI.updateLiveClassStatus(
-                            liveClass.id,
-                            "live",
-                          ).then(() => {
+                          InstituteAPI.updateLiveClassStatus(liveClass.id, "live").then(() => {
                             onRefresh();
                             setTimeout(() => handleJoinClass(liveClass), 500);
                           });
                         }}
-                        className="px-4 py-2 bg-[#0066cc] text-white hover:bg-[#0066cc]/90 rounded font-medium text-sm transition whitespace-nowrap"
+                        className="flex-1 sm:flex-none px-3 py-1.5 bg-[#0066cc] text-white hover:bg-[#0066cc]/90 rounded font-medium text-xs md:text-sm transition whitespace-nowrap"
                       >
-                        ▶️ Start Class
+                        ▶️ Start
                       </button>
                     )}
                     <button
                       onClick={() => handleDelete(liveClass.id)}
-                      className="text-red-400 hover:text-red-300 p-2 rounded hover:bg-red-500/10 transition"
+                      className="p-1.5 text-red-400 hover:text-red-300 rounded hover:bg-red-500/10 transition flex-shrink-0"
                       title="Delete"
                     >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
                   </div>

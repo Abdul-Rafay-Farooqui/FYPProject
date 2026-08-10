@@ -51,11 +51,11 @@ export default function AnnouncementsTab({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-[#e9edef] text-2xl font-semibold">Announcements</h2>
+      <div className="flex items-center justify-between gap-2 mb-4 md:mb-6">
+        <h2 className="text-[#e9edef] text-lg md:text-2xl font-semibold">Announcements</h2>
         <button
           onClick={() => setShowAddModal(true)}
-          className="px-4 py-2 rounded bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90"
+          className="px-3 py-1.5 rounded text-xs md:text-sm bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 whitespace-nowrap flex-shrink-0"
         >
           + New Announcement
         </button>
@@ -70,17 +70,17 @@ export default function AnnouncementsTab({
           <p className="text-[#8696a0]">No announcements yet</p>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3 md:gap-4">
           {announcements.map((announcement: any) => (
             <div
               key={announcement.id}
-              className={`bg-[#111b21] rounded-lg p-4 border ${getAnnouncementColor(announcement.announcement_type)}`}
+              className={`bg-[#111b21] rounded-lg p-3 md:p-4 border ${getAnnouncementColor(announcement.announcement_type)}`}
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-[#e9edef] font-medium">{announcement.title}</h3>
-                    <span className="text-xs px-2 py-1 rounded bg-[#0b141a] text-[#8696a0] capitalize">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <h3 className="text-[#e9edef] font-medium text-sm md:text-base truncate">{announcement.title}</h3>
+                    <span className="text-xs px-2 py-0.5 rounded bg-[#0b141a] text-[#8696a0] capitalize flex-shrink-0">
                       {announcement.announcement_type}
                     </span>
                   </div>
@@ -92,10 +92,10 @@ export default function AnnouncementsTab({
                 {isAdmin && (
                   <button
                     onClick={() => handleDeleteAnnouncement(announcement.id)}
-                    className="text-red-400 hover:text-red-300 p-2"
+                    className="text-red-400 hover:text-red-300 p-1.5 flex-shrink-0"
                     title="Delete announcement"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                   </button>

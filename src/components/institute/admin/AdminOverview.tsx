@@ -116,16 +116,16 @@ export default function AdminOverview({ instituteId }: AdminOverviewProps) {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-[#111b21] rounded-xl border border-[#222d34] p-6">
+      <div className="bg-[#111b21] rounded-xl border border-[#222d34] p-4 md:p-6">
         <h3 className="text-[#e9edef] text-lg font-semibold mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <button className="p-4 bg-[#0b141a] rounded-lg border border-[#222d34] hover:border-[#00a884] transition-colors text-center">
-            <svg className="w-8 h-8 text-[#00a884] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-            <p className="text-[#e9edef] text-sm font-medium">Add Members</p>
+        <div className="grid grid-cols-2 gap-3">
+          <button className="p-3 md:p-4 bg-[#0b141a] rounded-lg border border-[#222d34] hover:border-[#00a884] transition-colors text-center">
+            <svg className="w-7 h-7 md:w-8 md:h-8 text-[#00a884] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+            <p className="text-[#e9edef] text-xs md:text-sm font-medium">Add Members</p>
           </button>
-          <button className="p-4 bg-[#0b141a] rounded-lg border border-[#222d34] hover:border-[#00a884] transition-colors text-center">
-            <svg className="w-8 h-8 text-[#00a884] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
-            <p className="text-[#e9edef] text-sm font-medium">Send Announcement</p>
+          <button className="p-3 md:p-4 bg-[#0b141a] rounded-lg border border-[#222d34] hover:border-[#00a884] transition-colors text-center">
+            <svg className="w-7 h-7 md:w-8 md:h-8 text-[#00a884] mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+            <p className="text-[#e9edef] text-xs md:text-sm font-medium">Send Announcement</p>
           </button>
         </div>
       </div>
@@ -142,14 +142,14 @@ function StatCard({ title, value, subtitle, icon, color }: any) {
   };
 
   return (
-    <div className="bg-[#111b21] rounded-xl border border-[#222d34] p-6">
+    <div className="bg-[#111b21] rounded-xl border border-[#222d34] p-4 md:p-6">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-[#8696a0] text-sm mb-2">{title}</p>
-          <p className="text-[#e9edef] text-3xl font-bold mb-1">{value}</p>
+          <p className="text-[#8696a0] text-sm mb-1">{title}</p>
+          <p className="text-[#e9edef] text-2xl md:text-3xl font-bold mb-1">{value}</p>
           <p className="text-[#8696a0] text-xs">{subtitle}</p>
         </div>
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${colorClasses[color as keyof typeof colorClasses]}`}>
+        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center flex-shrink-0 ${colorClasses[color as keyof typeof colorClasses]}`}>
           {icon}
         </div>
       </div>

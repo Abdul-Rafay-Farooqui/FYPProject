@@ -20,6 +20,15 @@
     scrollbar-width: thin;
     scrollbar-color: #374045 transparent;
   }
+
+  /* Hide scrollbar but keep scrollability */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 /* Message appear animation */

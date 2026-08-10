@@ -19,15 +19,15 @@ const OrganizationSidebar = ({
   isOrgAdmin,
   isTeamAdmin,
 }: any) => (
-  <div className="w-[300px] bg-[#111b21] border-r border-[#222d34] flex flex-col">
+  <div className="w-[300px] h-full bg-[#111b21] border-r border-[#222d34] flex flex-col">
     {/* Header */}
-    <div className="p-4 border-b border-[#222d34]">
-      <h2 className="text-[#e9edef] text-lg font-bold mb-3 tracking-tight">Organizations</h2>
+    <div className="p-3 md:p-4 border-b border-[#222d34]">
+      <h2 className="text-[#e9edef] text-base md:text-lg font-bold mb-3 tracking-tight">Organizations</h2>
 
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-1.5 flex-wrap">
         <button
           onClick={onCreateOrganization}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#00a884]/15 text-[#00a884] border border-[#00a884]/30 hover:bg-[#00a884]/25 transition-all"
+          className="flex items-center gap-1 px-2 md:px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#00a884]/15 text-[#00a884] border border-[#00a884]/30 hover:bg-[#00a884]/25 transition-all"
         >
           <Building2 className="w-3.5 h-3.5" />
           New Org
@@ -35,14 +35,14 @@ const OrganizationSidebar = ({
         <button
           onClick={onCreateTeam}
           disabled={!selectedOrg}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#202c33] text-[#8696a0] border border-[#2a3942] hover:text-[#e9edef] hover:bg-[#2a3942] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex items-center gap-1 px-2 md:px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#202c33] text-[#8696a0] border border-[#2a3942] hover:text-[#e9edef] hover:bg-[#2a3942] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           👥 New Team
         </button>
         <button
           onClick={onAddOrgMembers}
           disabled={!selectedOrg}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#202c33] text-[#8696a0] border border-[#2a3942] hover:text-[#e9edef] hover:bg-[#2a3942] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex items-center gap-1 px-2 md:px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#202c33] text-[#8696a0] border border-[#2a3942] hover:text-[#e9edef] hover:bg-[#2a3942] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           ➕ Members
         </button>

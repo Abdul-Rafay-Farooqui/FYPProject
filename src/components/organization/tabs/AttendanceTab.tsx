@@ -255,16 +255,16 @@ const AttendanceTab = ({
   return (
     <div className="space-y-4">
       {/* Current Time & User Status Card */}
-      <div className="bg-gradient-to-br from-[#00a884]/10 to-[#111b21] border border-[#00a884]/30 rounded-xl p-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-gradient-to-br from-[#00a884]/10 to-[#111b21] border border-[#00a884]/30 rounded-xl p-4 md:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Clock className="w-5 h-5 text-[#00a884]" />
-              <h3 className="text-[#e9edef] text-lg font-semibold">
+              <h3 className="text-[#e9edef] text-base md:text-lg font-semibold">
                 {currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })}
               </h3>
             </div>
-            <p className="text-[#8696a0] text-sm">
+            <p className="text-[#8696a0] text-xs md:text-sm">
               {currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </p>
           </div>
@@ -275,7 +275,7 @@ const AttendanceTab = ({
               <button
                 onClick={handleClockIn}
                 disabled={clockingIn || !onClockIn}
-                className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium bg-[#00a884] hover:bg-[#008069] text-[#0b141a] disabled:opacity-50 transition-all"
+                className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-lg text-sm font-medium bg-[#00a884] hover:bg-[#008069] text-[#0b141a] disabled:opacity-50 transition-all"
               >
                 {clockingIn ? <Spinner /> : <LogIn className="w-4 h-4" />}
                 Clock In
@@ -284,7 +284,7 @@ const AttendanceTab = ({
               <button
                 onClick={handleClockOut}
                 disabled={clockingOut || !canClockOut || !onClockOut}
-                className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-medium bg-red-500 hover:bg-red-600 text-white disabled:opacity-50 transition-all"
+                className="flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-lg text-sm font-medium bg-red-500 hover:bg-red-600 text-white disabled:opacity-50 transition-all"
               >
                 {clockingOut ? <Spinner /> : <LogOut className="w-4 h-4" />}
                 Clock Out
@@ -295,7 +295,7 @@ const AttendanceTab = ({
 
         {/* Current Session Info */}
         {myTodayAttendance && (
-          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[#222d34]">
+          <div className="grid grid-cols-3 gap-2 md:gap-4 pt-4 border-t border-[#222d34]">
             <div>
               <p className="text-[#8696a0] text-xs mb-1">Clock In</p>
               <p className="text-[#e9edef] text-sm font-medium">
@@ -321,11 +321,11 @@ const AttendanceTab = ({
       </div>
 
       {/* View Toggle & Filters */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex bg-[#111b21] border border-[#222d34] rounded-lg overflow-hidden">
           <button
             onClick={() => setViewMode('today')}
-            className={`px-4 py-2 text-sm font-medium transition-all ${
+            className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-all ${
               viewMode === 'today'
                 ? 'bg-[#00a884] text-[#0b141a]'
                 : 'text-[#8696a0] hover:text-[#e9edef]'
@@ -336,7 +336,7 @@ const AttendanceTab = ({
           {isAdmin && (
             <button
               onClick={() => setViewMode('history')}
-              className={`px-4 py-2 text-sm font-medium transition-all ${
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm font-medium transition-all ${
                 viewMode === 'history'
                   ? 'bg-[#00a884] text-[#0b141a]'
                   : 'text-[#8696a0] hover:text-[#e9edef]'
@@ -406,12 +406,12 @@ const AttendanceTab = ({
             todayAttendance.map(record => (
               <div
                 key={record.id}
-                className="bg-[#111b21] border border-[#222d34] rounded-xl p-4 hover:border-[#2a3942] transition-all"
+                className="bg-[#111b21] border border-[#222d34] rounded-xl p-3 md:p-4 hover:border-[#2a3942] transition-all"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 md:gap-3 min-w-0">
                     {/* Avatar */}
-                    <div className="w-10 h-10 rounded-full bg-[#00a884]/20 flex items-center justify-center flex-shrink-0">
+                    <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[#00a884]/20 flex items-center justify-center flex-shrink-0">
                       {record.avatar ? (
                         <img src={record.avatar} alt={record.name} className="w-full h-full rounded-full object-cover" />
                       ) : (
@@ -422,13 +422,13 @@ const AttendanceTab = ({
                     </div>
 
                     {/* User Info */}
-                    <div>
-                      <p className="text-[#e9edef] text-sm font-medium">{record.name}</p>
-                      <div className="flex items-center gap-3 mt-1">
+                    <div className="min-w-0">
+                      <p className="text-[#e9edef] text-sm font-medium truncate">{record.name}</p>
+                      <div className="flex flex-wrap items-center gap-1 md:gap-3 mt-0.5">
                         <span className="text-[#8696a0] text-xs">
                           In: {formatTime(record.sign_in_at)}
                         </span>
-                        <span className="text-[#8696a0] text-xs">•</span>
+                        <span className="text-[#8696a0] text-xs hidden sm:inline">•</span>
                         <span className="text-[#8696a0] text-xs">
                           Out: {formatTime(record.sign_out_at)}
                         </span>
@@ -437,7 +437,7 @@ const AttendanceTab = ({
                   </div>
 
                   {/* Status & Hours */}
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0">
                     <span className={`inline-block px-2 py-1 rounded text-xs font-medium capitalize ${STATUS_COLORS[record.status] || 'text-[#8696a0]'}`}>
                       {record.status}
                     </span>

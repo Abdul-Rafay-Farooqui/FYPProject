@@ -109,74 +109,48 @@ const OrganizationMembersView = ({
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="p-6 border-b border-[#222d34]">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-[#e9edef] text-lg font-semibold">
+      <div className="p-3 md:p-6 border-b border-[#222d34]">
+        <div className="flex items-start justify-between gap-2 mb-4">
+          <div className="min-w-0">
+            <h3 className="text-[#e9edef] text-base md:text-lg font-semibold truncate">
               {orgName || 'Organization'}
             </h3>
-            <p className="text-[#8696a0] text-sm mt-0.5">
+            <p className="text-[#8696a0] text-xs md:text-sm mt-0.5">
               Select a team from the sidebar to get started
             </p>
           </div>
           {isOrgAdmin && activeTab === 'members' && (
             <button
               onClick={onAddMembers}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-[#00a884] border border-[#00a884]/30 hover:bg-[#00a884]/10 transition-all"
+              className="flex items-center gap-1 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium text-[#00a884] border border-[#00a884]/30 hover:bg-[#00a884]/10 transition-all flex-shrink-0"
             >
-              <UserPlus className="w-4 h-4" />
-              Add Member
+              <UserPlus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Add Member</span>
+              <span className="sm:hidden">Add</span>
             </button>
           )}
         </div>
 
-        {/* Tabs */}
-        <div className="flex bg-[#111b21] border border-[#222d34] rounded-lg overflow-hidden w-fit">
-          <button
-            onClick={() => setActiveTab('members')}
-            className={`px-6 py-2.5 text-sm font-medium transition-all ${
-              activeTab === 'members'
-                ? 'bg-[#00a884] text-[#0b141a]'
-                : 'text-[#8696a0] hover:text-[#e9edef]'
-            }`}
-          >
-            Members
-          </button>
-          <button
-            onClick={() => setActiveTab('attendance')}
-            className={`px-6 py-2.5 text-sm font-medium transition-all ${
-              activeTab === 'attendance'
-                ? 'bg-[#00a884] text-[#0b141a]'
-                : 'text-[#8696a0] hover:text-[#e9edef]'
-            }`}
-          >
-            Attendance
-          </button>
-          <button
-            onClick={() => setActiveTab('calendar')}
-            className={`px-6 py-2.5 text-sm font-medium transition-all ${
-              activeTab === 'calendar'
-                ? 'bg-[#00a884] text-[#0b141a]'
-                : 'text-[#8696a0] hover:text-[#e9edef]'
-            }`}
-          >
-            Calendar
-          </button>
-          <button
-            onClick={() => setActiveTab('praise')}
-            className={`px-6 py-2.5 text-sm font-medium transition-all ${
-              activeTab === 'praise'
-                ? 'bg-[#00a884] text-[#0b141a]'
-                : 'text-[#8696a0] hover:text-[#e9edef]'
-            }`}
-          >
-            Praise
-          </button>
+        {/* Tabs — scrollable on mobile */}
+        <div className="flex bg-[#111b21] border border-[#222d34] rounded-lg overflow-hidden overflow-x-auto no-scrollbar w-full md:w-fit">
+          {(['members', 'attendance', 'calendar', 'praise'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setActiveTab(t)}
+              className={`px-3 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 capitalize ${
+                activeTab === t
+                  ? 'bg-[#00a884] text-[#0b141a]'
+                  : 'text-[#8696a0] hover:text-[#e9edef]'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-3 md:p-6">
         {activeTab === 'members' && (
           <>
             {orgMembers.length === 0 ? (

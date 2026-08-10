@@ -632,53 +632,68 @@ const OrgView = ({
     setActiveTab("members");
   };
 
-  return (
-    <div className="flex h-full">
-      <OrganizationSidebar
-        organizations={organizationsWithTeams}
-        selectedOrg={selectedOrg}
-        setSelectedOrg={handleSelectOrg}
-        selectedTeam={selectedTeam}
-        setSelectedTeam={setSelectedTeam}
-        isLoading={isOrgsLoading}
-        error={error}
-        onRetry={loadOrganizations}
-        onCreateOrganization={() => setShowCreateOrg(true)}
-        onEditOrganization={() => setShowEditOrg(true)}
-        onCreateTeam={() => {
-          if (!selectedOrg) {
-            setError("Select an organization first");
-            return;
-          }
-          setShowCreateTeam(true);
-        }}
-        onAddOrgMembers={() => {
-          if (!selectedOrg) {
-            setError("Select an organization first");
-            return;
-          }
-          setShowAddOrgMembers(true);
-        }}
-        onDeleteOrg={() => setShowDeleteOrg(true)}
-        onEditTeam={(team: any) => {
-          setSelectedTeam(team);
-          setShowEditTeam(true);
-        }}
-        onAddTeamMembers={(team: any) => {
-          setSelectedTeam(team);
-          setShowAddTeamMembers(true);
-        }}
-        isOrgAdmin={isOrgAdmin}
-        isTeamAdmin={isTeamAdmin}
-        isOrgAdmin={isOrgAdmin}
-      />
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-      <div className="flex-1 flex flex-col bg-[#0b141a]">
+  return (
+    <div className="flex h-full relative">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar — always in flow on desktop, slide-over on mobile */}
+      <div className={`
+        absolute inset-y-0 left-0 z-40 md:relative md:inset-auto md:z-auto
+        transition-transform duration-300
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        <OrganizationSidebar
+          organizations={organizationsWithTeams}
+          selectedOrg={selectedOrg}
+          setSelectedOrg={(id: string | null) => { handleSelectOrg(id); setSidebarOpen(false); }}
+          selectedTeam={selectedTeam}
+          setSelectedTeam={(team: any) => { setSelectedTeam(team); setSidebarOpen(false); }}
+          isLoading={isOrgsLoading}
+          error={error}
+          onRetry={loadOrganizations}
+          onCreateOrganization={() => { setShowCreateOrg(true); setSidebarOpen(false); }}
+          onEditOrganization={() => { setShowEditOrg(true); setSidebarOpen(false); }}
+          onCreateTeam={() => {
+            if (!selectedOrg) { setError("Select an organization first"); return; }
+            setShowCreateTeam(true); setSidebarOpen(false);
+          }}
+          onAddOrgMembers={() => {
+            if (!selectedOrg) { setError("Select an organization first"); return; }
+            setShowAddOrgMembers(true); setSidebarOpen(false);
+          }}
+          onDeleteOrg={() => { setShowDeleteOrg(true); setSidebarOpen(false); }}
+          onEditTeam={(team: any) => { setSelectedTeam(team); setShowEditTeam(true); setSidebarOpen(false); }}
+          onAddTeamMembers={(team: any) => { setSelectedTeam(team); setShowAddTeamMembers(true); setSidebarOpen(false); }}
+          isOrgAdmin={isOrgAdmin}
+          isTeamAdmin={isTeamAdmin}
+        />
+      </div>
+
+      <div className="flex-1 flex flex-col bg-[#0b141a] min-w-0">
         {error && (
           <div className="m-4 p-3 rounded border border-red-500/40 bg-red-500/10 text-red-200 text-sm">
             {error}
           </div>
         )}
+
+        {/* Mobile sidebar toggle */}
+        <div className="md:hidden flex items-center gap-2 px-4 py-3 mt-1 bg-[#111b21] border-b border-[#222d34]">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="flex items-center gap-2 text-[#8696a0] hover:text-[#e9edef] text-sm"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            {selectedOrg ? (organizationsWithTeams.find(o => o.id === selectedOrg)?.name || 'Organizations') : 'Organizations'}
+          </button>
+        </div>
 
         {selectedTeam ? (
           <>
@@ -694,7 +709,11 @@ const OrgView = ({
               }
               isTeamAdmin={isTeamAdmin}
             />
-            <div className="flex-1 overflow-auto custom-scrollbar p-6">
+            <div className={`flex-1 min-h-0 ${
+              activeTab === 'chat'
+                ? 'overflow-hidden'
+                : 'overflow-auto custom-scrollbar p-3 md:p-6'
+            }`}>
               {isWorkspaceLoading && (
                 <p className="text-[#8696a0] text-sm mb-2">
                   Loading workspace…
@@ -769,7 +788,7 @@ const OrgView = ({
             onDeleteCalendarEvent={handleDeleteCalendarEvent}
           />
         ) : (
-          <div className="flex flex-col items-center justify-center h-full gap-6 p-8">
+          <div className="flex flex-col items-center justify-center min-h-full overflow-y-auto py-8 gap-6 p-4 md:p-8">
             <div className="w-32 h-32 rounded-full bg-[#1e2a30] flex items-center justify-center">
               <span className="text-6xl">🏢</span>
             </div>
@@ -788,7 +807,7 @@ const OrgView = ({
                 🏢 Create Organization
               </button>
             </div>
-            <div className="grid grid-cols-3 gap-4 mt-8 max-w-2xl">
+            <div className="grid grid-cols-3 gap-2 md:gap-4 mt-4 md:mt-8 w-full max-w-2xl">
               <div className="text-center p-4 bg-[#111b21] rounded-xl border border-[#222d34]">
                 <div className="text-3xl mb-2">👥</div>
                 <p className="text-[#e9edef] text-sm font-semibold mb-1">Teams</p>

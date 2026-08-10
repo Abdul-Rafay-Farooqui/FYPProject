@@ -73,7 +73,7 @@ export default function InstituteSidebar({
   };
 
   return (
-    <div className="w-72 bg-[#111b21] border-r border-[#222d34] flex flex-col">
+    <div className="w-72 h-full bg-[#111b21] border-r border-[#222d34] flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-[#222d34]">
         <div className="flex items-center justify-between mb-3">

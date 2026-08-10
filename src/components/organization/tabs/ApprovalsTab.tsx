@@ -226,11 +226,11 @@ const ApprovalsTab = ({
   return (
     <div className="space-y-4">
       {/* Header with Request Button */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-1.5">
           <button
             onClick={() => setActiveFilter('all')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               activeFilter === 'all'
                 ? 'bg-[#00a884] text-[#0b141a]'
                 : 'text-[#8696a0] hover:text-[#e9edef] bg-[#111b21] border border-[#222d34]'
@@ -240,18 +240,18 @@ const ApprovalsTab = ({
           </button>
           <button
             onClick={() => setActiveFilter('my-requests')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               activeFilter === 'my-requests'
                 ? 'bg-[#00a884] text-[#0b141a]'
                 : 'text-[#8696a0] hover:text-[#e9edef] bg-[#111b21] border border-[#222d34]'
             }`}
           >
-            My Requests ({myRequests.length})
+            Mine ({myRequests.length})
           </button>
           {isAdmin && (
             <button
               onClick={() => setActiveFilter('pending')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 activeFilter === 'pending'
                   ? 'bg-[#00a884] text-[#0b141a]'
                   : 'text-[#8696a0] hover:text-[#e9edef] bg-[#111b21] border border-[#222d34]'
@@ -264,9 +264,9 @@ const ApprovalsTab = ({
 
         <button
           onClick={() => setShowRequestModal(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#00a884] hover:bg-[#008069] text-[#0b141a] transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#00a884] hover:bg-[#008069] text-[#0b141a] transition-all flex-shrink-0"
         >
-          <Plus className="w-4 h-4" /> New Request
+          <Plus className="w-3.5 h-3.5" /> New Request
         </button>
       </div>
 

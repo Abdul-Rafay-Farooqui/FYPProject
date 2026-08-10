@@ -386,19 +386,19 @@ const MeetingsTab = ({
   return (
     <div className="space-y-6">
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         <button
           disabled={isBusy || !isAdmin}
           onClick={submitStartNow}
-          className="group relative overflow-hidden bg-gradient-to-br from-[#00a884] to-[#008069] hover:from-[#00ba95] hover:to-[#00a884] text-white rounded-xl p-6 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+          className="group relative overflow-hidden bg-gradient-to-br from-[#00a884] to-[#008069] hover:from-[#00ba95] hover:to-[#00a884] text-white rounded-xl p-4 md:p-6 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
         >
-          <div className="relative z-10 flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center">
-              <Video className="w-7 h-7" />
+          <div className="relative z-10 flex items-center gap-3 md:gap-4">
+            <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              <Video className="w-5 h-5 md:w-7 md:h-7" />
             </div>
             <div className="text-left">
-              <h3 className="text-lg font-semibold">Start Instant Meeting</h3>
-              <p className="text-sm text-white/80">Begin a meeting right now</p>
+              <h3 className="text-sm md:text-lg font-semibold">Start Instant Meeting</h3>
+              <p className="text-xs md:text-sm text-white/80">Begin a meeting right now</p>
             </div>
           </div>
           <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors" />
@@ -407,15 +407,15 @@ const MeetingsTab = ({
         <button
           disabled={!isAdmin}
           onClick={() => setShowScheduleModal(true)}
-          className="group relative overflow-hidden bg-[#111b21] hover:bg-[#1a252c] border-2 border-[#2a3942] hover:border-[#00a884] text-[#e9edef] rounded-xl p-6 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="group relative overflow-hidden bg-[#111b21] hover:bg-[#1a252c] border-2 border-[#2a3942] hover:border-[#00a884] text-[#e9edef] rounded-xl p-4 md:p-6 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <div className="relative z-10 flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-[#2a3942] group-hover:bg-[#00a884]/20 flex items-center justify-center transition-colors">
-              <Calendar className="w-7 h-7 text-[#00a884]" />
+          <div className="relative z-10 flex items-center gap-3 md:gap-4">
+            <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-[#2a3942] group-hover:bg-[#00a884]/20 flex items-center justify-center transition-colors flex-shrink-0">
+              <Calendar className="w-5 h-5 md:w-7 md:h-7 text-[#00a884]" />
             </div>
             <div className="text-left">
-              <h3 className="text-lg font-semibold">Schedule Meeting</h3>
-              <p className="text-sm text-[#8696a0]">Plan for later</p>
+              <h3 className="text-sm md:text-lg font-semibold">Schedule Meeting</h3>
+              <p className="text-xs md:text-sm text-[#8696a0]">Plan for later</p>
             </div>
           </div>
         </button>
@@ -486,20 +486,20 @@ const MeetingsTab = ({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
                     {meeting.status === "ongoing" && (
                       <>
                         <button
                           onClick={() => openMeeting(meeting)}
-                          className="px-4 py-2 rounded-lg bg-[#00a884] hover:bg-[#00ba95] text-white text-sm font-semibold transition-all flex items-center gap-2"
+                          className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-[#00a884] hover:bg-[#00ba95] text-white text-xs md:text-sm font-semibold transition-all flex items-center gap-1 md:gap-2"
                         >
-                          <Play className="w-4 h-4" />
+                          <Play className="w-3.5 h-3.5 md:w-4 md:h-4" />
                           Join
                         </button>
                         {isAdmin && (
                           <button
                             onClick={() => endLiveMeeting(meeting.id)}
-                            className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-all"
+                            className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs md:text-sm font-semibold transition-all"
                           >
                             End
                           </button>
@@ -510,9 +510,9 @@ const MeetingsTab = ({
                     {meeting.status === "scheduled" && isAdmin && (
                       <button
                         onClick={() => startScheduledMeeting(meeting)}
-                        className="px-4 py-2 rounded-lg bg-[#2a3942] hover:bg-[#364751] text-[#e9edef] text-sm font-semibold transition-all flex items-center gap-2"
+                        className="px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-[#2a3942] hover:bg-[#364751] text-[#e9edef] text-xs md:text-sm font-semibold transition-all flex items-center gap-1 md:gap-2"
                       >
-                        <Play className="w-4 h-4" />
+                        <Play className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         Start
                       </button>
                     )}

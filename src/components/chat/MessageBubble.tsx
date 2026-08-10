@@ -132,14 +132,14 @@ export default function MessageBubble({
             {message.media_url && (
               <>
                 {!imgLoaded && (
-                  <div className="w-[280px] h-[200px] bg-[#1e2a30] rounded-md animate-pulse flex items-center justify-center">
+                  <div className="w-full max-w-[280px] h-[200px] bg-[#1e2a30] rounded-md animate-pulse flex items-center justify-center">
                     <div className="w-6 h-6 border-2 border-[#00a884] border-t-transparent rounded-full animate-spin" />
                   </div>
                 )}
                 <img
                   src={message.media_url}
                   alt="Photo"
-                  className={`max-w-[280px] rounded-md cursor-pointer hover:opacity-90 transition-opacity ${
+                  className={`w-full max-w-[280px] rounded-md cursor-pointer hover:opacity-90 transition-opacity ${
                     imgLoaded ? '' : 'hidden'
                   }`}
                   onLoad={() => setImgLoaded(true)}
@@ -159,7 +159,7 @@ export default function MessageBubble({
         return (
           <div className="relative">
             {message.media_url && (
-              <div className="relative max-w-[280px] rounded-md overflow-hidden">
+              <div className="relative w-full max-w-[280px] rounded-md overflow-hidden">
                 <video
                   src={message.media_url}
                   className="w-full rounded-md"
@@ -178,7 +178,7 @@ export default function MessageBubble({
 
       case 'audio':
         return (
-          <div className="flex items-center gap-3 min-w-[240px] pb-[18px] pr-[52px]">
+          <div className="flex items-center gap-3 w-full max-w-[240px] min-w-[180px] pb-[18px] pr-[52px]">
             <audio ref={audioRef} src={message.media_url || ''} preload="metadata" />
             <button
               onClick={toggleAudio}
@@ -218,7 +218,7 @@ export default function MessageBubble({
             href={message.media_url || '#'}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 bg-[#1e2a30] px-3 py-2.5 rounded-md min-w-[220px] hover:bg-[#253640] transition-colors"
+            className="flex items-center gap-3 bg-[#1e2a30] px-3 py-2.5 rounded-md w-full min-w-0 hover:bg-[#253640] transition-colors"
           >
             <div className="w-10 h-10 bg-[#374045] rounded-lg flex items-center justify-center flex-shrink-0">
               <FileText className="w-5 h-5 text-[#8696a0]" />
@@ -271,7 +271,7 @@ export default function MessageBubble({
       )}
 
       <div
-        className={`max-w-[65%] min-w-[80px] px-[9px] py-[6px] rounded-lg relative shadow-sm
+        className={`max-w-[85%] sm:max-w-[65%] min-w-[60px] w-fit px-[9px] py-[6px] rounded-lg relative shadow-sm
           ${isOwn
             ? 'bg-[#005c4b] text-[#e9edef] rounded-tr-none'
             : 'bg-[#202c33] text-[#e9edef] rounded-tl-none'

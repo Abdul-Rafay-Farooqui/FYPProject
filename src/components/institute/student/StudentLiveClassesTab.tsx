@@ -115,10 +115,8 @@ export default function StudentLiveClassesTab({
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="text-[#e9edef] text-2xl font-semibold mb-4">
-          Live Classes
-        </h2>
+      <div className="mb-4 md:mb-6">
+        <h2 className="text-[#e9edef] text-lg md:text-2xl font-semibold mb-1">Live Classes</h2>
       </div>
 
       {liveClasses.length === 0 ? (
@@ -270,77 +268,56 @@ function ClassCard({
   };
 
   return (
-    <div className="bg-[#111b21] rounded-lg p-4 border border-[#222d34] hover:border-[#00a884]/50 transition">
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-[#e9edef] font-medium text-lg">
+    <div className="bg-[#111b21] rounded-lg p-3 md:p-4 border border-[#222d34] hover:border-[#00a884]/50 transition">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <h3 className="text-[#e9edef] font-medium text-sm md:text-base truncate">
               {liveClass.title}
             </h3>
-            <span
-              className={`text-xs px-2 py-1 rounded font-medium whitespace-nowrap ${
-                isLive
-                  ? "bg-red-900/30 text-red-400"
-                  : isScheduled
-                    ? "bg-yellow-900/30 text-yellow-400"
-                    : "bg-gray-900/30 text-gray-400"
-              }`}
-            >
+            <span className={`text-xs px-2 py-0.5 rounded font-medium whitespace-nowrap flex-shrink-0 ${
+              isLive ? "bg-red-900/30 text-red-400" : isScheduled ? "bg-yellow-900/30 text-yellow-400" : "bg-gray-900/30 text-gray-400"
+            }`}>
               {isLive ? "🔴 Live" : isScheduled ? "📅 Scheduled" : "✓ Ended"}
             </span>
           </div>
           {liveClass.description && (
-            <p className="text-[#8696a0] text-sm mb-2">
-              {liveClass.description}
-            </p>
+            <p className="text-[#8696a0] text-sm mb-2">{liveClass.description}</p>
           )}
-          <div className="text-[#8696a0] text-sm space-y-1">
+          <div className="text-[#8696a0] text-xs md:text-sm space-y-1">
             <p>📅 {formatDateTime(liveClass.scheduled_at)}</p>
-            <p>⏱️ Duration: {formatDuration(liveClass.duration_minutes)}</p>
+            <p>⏱️ {formatDuration(liveClass.duration_minutes)}</p>
             {liveClass.subject_id && (
               <p className="text-[#00a884] font-medium">📚 {subjectName}</p>
             )}
             {liveClass.location_type && (
-              <p>
-                📍{" "}
-                {liveClass.location_type === "online"
-                  ? "🌐 Online"
-                  : liveClass.location_type === "onsite"
-                    ? "🏫 Onsite"
-                    : "🔀 Hybrid"}
-              </p>
+              <p>📍 {liveClass.location_type === "online" ? "🌐 Online" : liveClass.location_type === "onsite" ? "🏫 Onsite" : "🔀 Hybrid"}</p>
             )}
             {liveClass.call_type && (
-              <p>
-                {liveClass.call_type === "video"
-                  ? "📹 Video Call"
-                  : "🎤 Voice Only"}
-              </p>
+              <p>{liveClass.call_type === "video" ? "📹 Video Call" : "🎤 Voice Only"}</p>
             )}
           </div>
         </div>
 
-        {/* Join Button */}
-        {onJoinClick && (
-          <button
-            onClick={onJoinClick}
-            className={`px-4 py-2 rounded font-medium text-sm transition whitespace-nowrap ml-4 ${
-              isLive
-                ? "bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90"
-                : isScheduled
-                  ? "bg-[#0066cc] text-white hover:bg-[#0066cc]/90"
+        {/* Action button */}
+        <div className="flex-shrink-0 self-start sm:self-auto">
+          {onJoinClick && (
+            <button
+              onClick={onJoinClick}
+              className={`px-3 py-1.5 rounded font-medium text-xs md:text-sm transition whitespace-nowrap ${
+                isLive ? "bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90"
+                  : isScheduled ? "bg-[#0066cc] text-white hover:bg-[#0066cc]/90"
                   : "bg-gray-700 text-gray-300 cursor-not-allowed"
-            }`}
-            disabled={isEnded}
-          >
-            {isLive ? "📹 Join Now" : isScheduled ? "📝 Join Class" : "Class Ended"}
-          </button>
-        )}
-        {isEnded && (
-          <div className="text-[#8696a0] text-sm ml-4 whitespace-nowrap">
-            Class Completed
-          </div>
-        )}
+              }`}
+              disabled={isEnded}
+            >
+              {isLive ? "📹 Join Now" : isScheduled ? "📝 Join Class" : "Ended"}
+            </button>
+          )}
+          {isEnded && !onJoinClick && (
+            <span className="text-[#8696a0] text-xs">Completed</span>
+          )}
+        </div>
       </div>
 
       {/* Teacher Info */}

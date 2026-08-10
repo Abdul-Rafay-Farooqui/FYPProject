@@ -239,42 +239,20 @@ export default function SectionsTab({ sections: initialSections, instituteId, is
 
   return (
     <div>
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[#e9edef] text-2xl font-semibold">Sections</h2>
+      <div className="mb-4 md:mb-6">
+        <div className="flex items-center justify-between mb-3 md:mb-4">
+          <h2 className="text-[#e9edef] text-lg md:text-2xl font-semibold">Sections</h2>
           {isAdmin && (
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="px-4 py-2 rounded bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 font-medium"
-            >
-              + Add Section
-            </button>
+            <button onClick={() => setShowAddModal(true)} className="px-3 py-1.5 rounded text-xs md:text-sm bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 font-medium whitespace-nowrap">+ Add Section</button>
           )}
         </div>
-        <div className="flex flex-wrap gap-3">
-          <input
-            type="text"
-            placeholder="Search sections..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 min-w-[200px] px-4 py-2 bg-[#111b21] border border-[#222d34] rounded-lg text-[#e9edef] placeholder-[#8696a0] focus:outline-none focus:border-[#00a884]"
-          />
-          <select
-            value={sortField}
-            onChange={(e) => setSortField(e.target.value as any)}
-            className="px-4 py-2 bg-[#111b21] border border-[#222d34] rounded-lg text-[#e9edef] focus:outline-none focus:border-[#00a884]"
-          >
-            <option value="name">Sort by Name</option>
-            <option value="created_at">Sort by Created Date</option>
-            <option value="student_count">Sort by Student Count</option>
+        <div className="flex flex-wrap gap-2">
+          <input type="text" placeholder="Search sections..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="flex-1 min-w-[120px] px-3 py-2 bg-[#111b21] border border-[#222d34] rounded-lg text-[#e9edef] text-sm placeholder-[#8696a0] focus:outline-none focus:border-[#00a884]" />
+          <select value={sortField} onChange={(e) => setSortField(e.target.value as any)} className="px-3 py-2 bg-[#111b21] border border-[#222d34] rounded-lg text-[#e9edef] text-sm focus:outline-none focus:border-[#00a884]">
+            <option value="name">Name</option><option value="created_at">Date</option><option value="student_count">Students</option>
           </select>
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as any)}
-            className="px-4 py-2 bg-[#111b21] border border-[#222d34] rounded-lg text-[#e9edef] focus:outline-none focus:border-[#00a884]"
-          >
-            <option value="ASC">Ascending</option>
-            <option value="DESC">Descending</option>
+          <select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as any)} className="px-3 py-2 bg-[#111b21] border border-[#222d34] rounded-lg text-[#e9edef] text-sm focus:outline-none focus:border-[#00a884]">
+            <option value="ASC">Asc</option><option value="DESC">Desc</option>
           </select>
         </div>
       </div>
@@ -295,49 +273,26 @@ export default function SectionsTab({ sections: initialSections, instituteId, is
       ) : (
         <div className="grid gap-4">
           {displaySections.map((section: Section) => (
-            <div key={section.id} className="bg-[#111b21] rounded-lg p-4 border border-[#222d34] hover:border-[#2a3942] transition-colors">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h3 className="text-[#e9edef] font-medium text-lg">{section.name}</h3>
-                  <div className="flex items-center gap-4 mt-2 text-sm text-[#8696a0]">
+            <div key={section.id} className="bg-[#111b21] rounded-lg p-3 md:p-4 border border-[#222d34] hover:border-[#2a3942] transition-colors">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[#e9edef] font-medium">{section.name}</h3>
+                  <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-[#8696a0]">
                     <span>Students: {section.student_count || 0}</span>
                     <span>•</span>
                     <span>Created: {new Date(section.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleViewStudents(section)}
-                    className="px-3 py-1.5 text-sm rounded bg-[#1e2a30] text-[#00a884] hover:bg-[#2a3942] transition-colors"
-                  >
-                    View Students
-                  </button>
+                <div className="flex flex-wrap items-center gap-1.5 flex-shrink-0">
+                  <button onClick={() => handleViewStudents(section)} className="px-2 py-1 text-xs rounded bg-[#1e2a30] text-[#00a884] hover:bg-[#2a3942] transition-colors whitespace-nowrap">View</button>
                   {isAdmin && (
                     <>
-                      <button
-                        onClick={() => handleOpenAddStudents(section)}
-                        className="px-3 py-1.5 text-sm rounded bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 transition-colors"
-                      >
-                        + Add Students
+                      <button onClick={() => handleOpenAddStudents(section)} className="px-2 py-1 text-xs rounded bg-[#00a884] text-[#0b141a] hover:bg-[#00a884]/90 transition-colors whitespace-nowrap">+ Students</button>
+                      <button onClick={() => { setSelectedSection(section); setShowEditModal(true); }} className="p-1.5 text-[#8696a0] hover:text-[#e9edef] hover:bg-[#1e2a30] rounded transition-colors">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                       </button>
-                      <button
-                        onClick={() => {
-                          setSelectedSection(section);
-                          setShowEditModal(true);
-                        }}
-                        className="p-2 text-[#8696a0] hover:text-[#e9edef] hover:bg-[#1e2a30] rounded transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => handleDeleteSection(section.id)}
-                        className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                      <button onClick={() => handleDeleteSection(section.id)} className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </>
                   )}

@@ -181,66 +181,50 @@ export default function StudentDiscussionTab({
   }
 
   return (
-    <div className="h-[calc(100vh-250px)] flex gap-4">
-      {/* Left Sidebar - Subjects */}
-      <div className="w-80 bg-[#111b21] rounded-lg border border-[#2a3942] flex flex-col">
-        <div className="p-4 border-b border-[#2a3942]">
-          <h3 className="text-[#e9edef] font-semibold mb-2">My Courses</h3>
+    <div className="flex flex-col md:flex-row gap-4" style={{ minHeight: 'min(calc(100vh-250px), 600px)' }}>
+      {/* Left Sidebar - Subjects — full width on mobile, fixed on desktop */}
+      <div className="w-full md:w-72 md:flex-shrink-0 bg-[#111b21] rounded-lg border border-[#2a3942] flex flex-col max-h-64 md:max-h-none">
+        <div className="p-3 md:p-4 border-b border-[#2a3942]">
+          <h3 className="text-[#e9edef] font-semibold mb-2 text-sm md:text-base">My Courses</h3>
           <button
             onClick={() => setShowNewModal(true)}
-            className="w-full px-4 py-2 bg-[#00a884] text-[#0b141a] rounded-lg hover:bg-[#00a884]/90 transition-colors text-sm font-medium"
+            className="w-full px-3 py-2 bg-[#00a884] text-[#0b141a] rounded-lg hover:bg-[#00a884]/90 transition-colors text-xs md:text-sm font-medium"
           >
             + New Discussion
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
           {subjects.map((subject) => {
             const subjectThreads = discussionsBySubject[subject.id] || [];
-            const totalUnread = subjectThreads.reduce(
-              (sum, t) => sum + t.unreadCount,
-              0
-            );
+            const totalUnread = subjectThreads.reduce((sum, t) => sum + t.unreadCount, 0);
 
             return (
               <div
                 key={subject.id}
-                className={`border-b border-[#2a3942] ${
-                  selectedSubject === subject.id ? "bg-[#0b141a]" : ""
-                }`}
+                className={`border-b border-[#2a3942] ${selectedSubject === subject.id ? "bg-[#0b141a]" : ""}`}
               >
                 <button
-                  onClick={() =>
-                    setSelectedSubject(
-                      selectedSubject === subject.id ? null : subject.id
-                    )
-                  }
-                  className="w-full p-4 text-left hover:bg-[#0b141a] transition-colors"
+                  onClick={() => setSelectedSubject(selectedSubject === subject.id ? null : subject.id)}
+                  className="w-full p-3 md:p-4 text-left hover:bg-[#0b141a] transition-colors"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <BookOpen className="w-5 h-5 text-[#00a884]" />
-                      <div>
-                        <p className="text-[#e9edef] font-medium">
-                          {subject.name}
-                        </p>
+                    <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                      <BookOpen className="w-4 h-4 text-[#00a884] flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-[#e9edef] font-medium text-sm truncate">{subject.name}</p>
                         <p className="text-xs text-[#8696a0]">
-                          {subjectThreads.length} discussion
-                          {subjectThreads.length !== 1 ? "s" : ""}
+                          {subjectThreads.length} discussion{subjectThreads.length !== 1 ? "s" : ""}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
                       {totalUnread > 0 && (
-                        <span className="bg-[#00a884] text-[#0b141a] text-xs font-bold px-2 py-0.5 rounded-full">
+                        <span className="bg-[#00a884] text-[#0b141a] text-xs font-bold px-1.5 py-0.5 rounded-full">
                           {totalUnread}
                         </span>
                       )}
-                      <ChevronRight
-                        className={`w-4 h-4 text-[#8696a0] transition-transform ${
-                          selectedSubject === subject.id ? "rotate-90" : ""
-                        }`}
-                      />
+                      <ChevronRight className={`w-4 h-4 text-[#8696a0] transition-transform ${selectedSubject === subject.id ? "rotate-90" : ""}`} />
                     </div>
                   </div>
                 </button>
@@ -252,19 +236,13 @@ export default function StudentDiscussionTab({
                         <button
                           key={thread.id}
                           onClick={() => setSelectedThread(thread.id)}
-                          className={`w-full p-3 px-6 text-left hover:bg-[#1e2a30] transition-colors border-l-2 ${
-                            selectedThread === thread.id
-                              ? "border-[#00a884] bg-[#1e2a30]"
-                              : "border-transparent"
+                          className={`w-full p-3 px-5 text-left hover:bg-[#1e2a30] transition-colors border-l-2 ${
+                            selectedThread === thread.id ? "border-[#00a884] bg-[#1e2a30]" : "border-transparent"
                           }`}
                         >
-                          <p className="text-[#e9edef] text-sm font-medium truncate">
-                            {thread.title}
-                          </p>
-                          <div className="flex items-center justify-between mt-1">
-                            <p className="text-xs text-[#8696a0]">
-                              with {thread.teacher_name}
-                            </p>
+                          <p className="text-[#e9edef] text-xs font-medium truncate">{thread.title}</p>
+                          <div className="flex items-center justify-between mt-0.5">
+                            <p className="text-xs text-[#8696a0]">with {thread.teacher_name}</p>
                             {thread.unreadCount > 0 && (
                               <span className="bg-[#00a884] text-[#0b141a] text-xs font-bold px-1.5 py-0.5 rounded-full">
                                 {thread.unreadCount}
@@ -274,9 +252,7 @@ export default function StudentDiscussionTab({
                         </button>
                       ))
                     ) : (
-                      <p className="text-xs text-[#8696a0] text-center py-4">
-                        No discussions yet
-                      </p>
+                      <p className="text-xs text-[#8696a0] text-center py-4">No discussions yet</p>
                     )}
                   </div>
                 )}
@@ -287,7 +263,7 @@ export default function StudentDiscussionTab({
       </div>
 
       {/* Right Panel - Discussion Thread */}
-      <div className="flex-1 bg-[#111b21] rounded-lg border border-[#2a3942] flex flex-col">
+      <div className="flex-1 bg-[#111b21] rounded-lg border border-[#2a3942] flex flex-col min-h-64 md:min-h-0">
         {selectedThread && selectedThreadData ? (
           <>
             {/* Thread Header */}

@@ -129,89 +129,110 @@ export default function MainLayout({
   // Pages that bypass the tab layout (auth, ai-chat, etc.)
   const isAiChat = pathname === "/ai-chat";
 
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+  // On mobile chat tab: if we're on a chat route (not root), hide sidebar; if on root, hide main content
+  const isOnChatRoute = mainTab === "chat" && pathname !== "/" && !isAiChat;
+
   return (
-    <div className="h-screen w-screen flex bg-[#0b141a] overflow-hidden">
-      {/* Left sidebar — only shown on chat tab */}
-      {mainTab === "chat" && (
-        <div className="w-[355px] flex-shrink-0 border-r border-[#222d34]">
-          <Sidebar />
+    <div className="h-screen w-screen flex flex-col bg-[#0b141a] overflow-hidden">
+      {/* Tab bar — always visible at top */}
+      <div className="flex items-center justify-between bg-[#111b21] border-b border-[#222d34] px-2 md:px-4 flex-shrink-0">
+        {/* Mobile back button when inside a chat conversation or AI chat */}
+        {(isOnChatRoute || isAiChat) ? (
+          <button
+            onClick={() => router.push("/")}
+            className="md:hidden flex items-center gap-1 text-[#00a884] py-3 px-2 text-sm font-medium"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </button>
+        ) : null}
+
+        {/* Tabs — always shown on desktop; on mobile shown unless inside a chat or AI chat */}
+        <div className={`flex items-center gap-0 md:gap-1 overflow-x-auto no-scrollbar ${(isOnChatRoute || isAiChat) ? 'hidden md:flex' : 'flex'}`}>
+          <TabBtn
+            icon={<MessageCircle className="w-4 h-4" />}
+            label="Chat"
+            active={mainTab === "chat"}
+            badgeCount={chatUnread}
+            onClick={() => { setMainTab("chat"); router.push("/"); }}
+          />
+          <TabBtn
+            icon={<Building2 className="w-4 h-4" />}
+            label="Organization"
+            active={mainTab === "organization"}
+            badgeCount={orgUnread}
+            onClick={() => { setMainTab("organization"); router.push("/"); }}
+          />
+          <TabBtn
+            icon={<GraduationCap className="w-4 h-4" />}
+            label="Institute"
+            active={mainTab === "institute"}
+            badgeCount={instituteUnread}
+            onClick={() => { setMainTab("institute"); }}
+          />
         </div>
-      )}
 
-      {/* Right area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Tab bar */}
-        <div className="flex items-center justify-between bg-[#111b21] border-b border-[#222d34] px-4 flex-shrink-0">
-          <div className="flex items-center gap-1">
-            <TabBtn
-              icon={<MessageCircle className="w-4 h-4" />}
-              label="Chat"
-              active={mainTab === "chat"}
-              badgeCount={chatUnread}
-              onClick={() => { setMainTab("chat"); router.push("/"); }}
-            />
-            <TabBtn
-              icon={<Building2 className="w-4 h-4" />}
-              label="Organization"
-              active={mainTab === "organization"}
-              badgeCount={orgUnread}
-              onClick={() => { setMainTab("organization"); router.push("/"); }}
-            />
-            <TabBtn
-              icon={<GraduationCap className="w-4 h-4" />}
-              label="Institute"
-              active={mainTab === "institute"}
-              badgeCount={instituteUnread}
-              onClick={() => { setMainTab("institute"); }}
-            />
+        {/* Notification Bell */}
+        {mainTab === "organization" && !isOnChatRoute && (
+          <button
+            onClick={() => { if (selectedOrgId) setShowNotifications(!showNotifications); }}
+            disabled={!selectedOrgId}
+            className={`relative p-2 rounded-lg transition-all flex-shrink-0 ${
+              selectedOrgId
+                ? 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#202c33] cursor-pointer'
+                : 'text-[#8696a0]/40 cursor-not-allowed'
+            } ${bellAnimation ? 'animate-bounce' : ''}`}
+            title={selectedOrgId ? "Notifications" : "Select an organization first"}
+          >
+            <Bell className={`w-5 h-5 ${bellAnimation ? 'text-[#00a884]' : ''}`} />
+            {selectedOrgId && selectedOrgUnread > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold bg-[#00a884] text-[#0b141a] rounded-full animate-pulse">
+                {selectedOrgUnread > 99 ? '99+' : selectedOrgUnread}
+              </span>
+            )}
+          </button>
+        )}
+        {mainTab === "institute" && selectedInstituteId && !isOnChatRoute && (
+          <InstituteNotificationBell instituteId={selectedInstituteId} />
+        )}
+      </div>
 
+      {/* Body — sidebar + content side by side on desktop; stacked on mobile */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left sidebar — chat tab only */}
+        {mainTab === "chat" && (
+          <div className={`
+            md:w-[355px] md:flex-shrink-0 md:border-r md:border-[#222d34]
+            ${isOnChatRoute || isAiChat ? 'hidden md:block' : 'w-full md:w-[355px]'}
+          `}>
+            <Sidebar />
           </div>
+        )}
 
-          {/* Notification Bell - Always show on organization tab */}
-          {mainTab === "organization" && (
-            <button
-              onClick={() => {
-                if (selectedOrgId) {
-                  setShowNotifications(!showNotifications);
-                }
-              }}
-              disabled={!selectedOrgId}
-              className={`relative p-2 rounded-lg transition-all ${
-                selectedOrgId
-                  ? 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#202c33] cursor-pointer'
-                  : 'text-[#8696a0]/40 cursor-not-allowed'
-              } ${bellAnimation ? 'animate-bounce' : ''}`}
-              title={selectedOrgId ? "Notifications" : "Select an organization to view notifications"}
-            >
-              <Bell className={`w-5 h-5 ${bellAnimation ? 'text-[#00a884]' : ''}`} />
-              {selectedOrgId && selectedOrgUnread > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold bg-[#00a884] text-[#0b141a] rounded-full animate-pulse">
-                  {selectedOrgUnread > 99 ? '99+' : selectedOrgUnread}
-                </span>
-              )}
-            </button>
-          )}
-          {/* Institute Notification Bell */}
-          {mainTab === "institute" && selectedInstituteId && (
-            <InstituteNotificationBell instituteId={selectedInstituteId} />
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-hidden relative">
-          {mainTab === "chat" && (
-            <main className="h-full w-full">{children}</main>
-          )}
-          {mainTab === "institute" && (
-            <div className="h-full w-full overflow-hidden" style={{ background: '#0b141a' }}>
-              <InstituteView onInstituteChange={setSelectedInstituteId} />
-            </div>
-          )}
-          {mainTab === "organization" && (
-            <div className="h-full w-full">
-              <OrgView onOrgChange={setSelectedOrgId} />
-            </div>
-          )}
+        {/* Right content area */}
+        <div className={`
+          flex-1 flex flex-col overflow-hidden
+          ${mainTab === "chat" && !isOnChatRoute && !isAiChat ? 'hidden md:flex' : 'flex'}
+        `}>
+          {/* Content */}
+          <div className="flex-1 overflow-hidden relative">
+            {mainTab === "chat" && (
+              <main className="h-full w-full">{children}</main>
+            )}
+            {mainTab === "institute" && (
+              <div className="h-full w-full overflow-hidden" style={{ background: '#0b141a' }}>
+                <InstituteView onInstituteChange={setSelectedInstituteId} />
+              </div>
+            )}
+            {mainTab === "organization" && (
+              <div className="h-full w-full">
+                <OrgView onOrgChange={setSelectedOrgId} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -295,7 +316,7 @@ function TabBtn({
   return (
     <button
       onClick={onClick}
-      className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all ${
+      className={`relative flex items-center gap-1.5 px-3 md:px-4 py-3 text-xs md:text-sm font-medium border-b-2 transition-all whitespace-nowrap flex-shrink-0 ${
         active
           ? "text-[#00a884] border-[#00a884]"
           : "text-[#8696a0] border-transparent hover:text-[#e9edef]"
@@ -304,7 +325,7 @@ function TabBtn({
       {icon}
       {label}
       {badgeCount > 0 && (
-        <span className="absolute top-1 right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold bg-[#00a884] text-[#0b141a] rounded-full">
+        <span className="absolute top-1 right-0.5 min-w-[16px] h-[16px] flex items-center justify-center px-1 text-[9px] font-bold bg-[#00a884] text-[#0b141a] rounded-full">
           {badgeCount > 99 ? "99+" : badgeCount}
         </span>
       )}

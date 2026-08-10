@@ -11,7 +11,7 @@ interface ChatTabProps {
 const ChatTab = ({ teamConversationId, selectedTeam }: ChatTabProps) => {
   if (teamConversationId) {
     return (
-      <div className="h-full overflow-hidden">
+      <div className="h-full w-full overflow-hidden">
         <ChatWindow conversationId={teamConversationId} />
       </div>
     );
