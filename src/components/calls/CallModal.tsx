@@ -114,9 +114,7 @@ export default function CallModal() {
     };
 
     pc.onconnectionstatechange = () => {
-      if (
-        ["failed", "disconnected", "closed"].includes(pc.connectionState)
-      ) {
+      if (["failed", "disconnected", "closed"].includes(pc.connectionState)) {
         setActiveCall(null);
       }
     };
@@ -226,7 +224,16 @@ export default function CallModal() {
       if (localVideoRef.current) localVideoRef.current.srcObject = null;
       if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
     };
-  }, [activeCall?.id, activeCall?.type, activeCall?.caller_id, closePeerConnection, createPeerConnection, handleOffer, sendOffer, user]);
+  }, [
+    activeCall?.id,
+    activeCall?.type,
+    activeCall?.caller_id,
+    closePeerConnection,
+    createPeerConnection,
+    handleOffer,
+    sendOffer,
+    user,
+  ]);
 
   useEffect(() => {
     if (remoteVideoRef.current) {
@@ -298,7 +305,9 @@ export default function CallModal() {
       }
     };
     socket.on("call:update", onUpdate);
-    return () => { socket.off("call:update", onUpdate); };
+    return () => {
+      socket.off("call:update", onUpdate);
+    };
   }, [activeCall?.id, closePeerConnection, setActiveCall]);
 
   if (!activeCall) return null;
@@ -307,7 +316,11 @@ export default function CallModal() {
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   const handleEndCall = async () => {
-    try { await CallsAPI.end(activeCall.id, callDuration); } catch (e) { console.error(e); }
+    try {
+      await CallsAPI.end(activeCall.id, callDuration);
+    } catch (e) {
+      console.error(e);
+    }
     closePeerConnection();
     setActiveCall(null);
   };
@@ -318,7 +331,9 @@ export default function CallModal() {
   };
 
   const toggleVideo = () => {
-    streamRef.current?.getVideoTracks().forEach((t) => (t.enabled = isVideoOff));
+    streamRef.current
+      ?.getVideoTracks()
+      .forEach((t) => (t.enabled = isVideoOff));
     setIsVideoOff(!isVideoOff);
   };
 
@@ -327,15 +342,25 @@ export default function CallModal() {
       {/* Top: caller info */}
       <div className="absolute top-10 text-center z-10 flex flex-col items-center gap-3">
         {otherAvatar ? (
-          <img src={otherAvatar} alt={otherName} className="w-20 h-20 rounded-full object-cover border-4 border-[#00a884]" />
+          <img
+            src={otherAvatar}
+            alt={otherName}
+            className="w-20 h-20 rounded-full object-cover border-4 border-[#00a884]"
+          />
         ) : (
           <div className="w-20 h-20 rounded-full bg-[#2a3942] flex items-center justify-center border-4 border-[#00a884]">
-            <span className="text-[#e9edef] text-3xl font-bold">{otherName?.[0]?.toUpperCase() || "?"}</span>
+            <span className="text-[#e9edef] text-3xl font-bold">
+              {otherName?.[0]?.toUpperCase() || "?"}
+            </span>
           </div>
         )}
         <div>
-          <h2 className="text-[#e9edef] text-2xl font-bold">{otherName || "Calling..."}</h2>
-          <p className="text-[#8696a0] text-base">{formatDuration(callDuration)}</p>
+          <h2 className="text-[#e9edef] text-2xl font-bold">
+            {otherName || "Calling..."}
+          </h2>
+          <p className="text-[#8696a0] text-base">
+            {formatDuration(callDuration)}
+          </p>
         </div>
       </div>
 
@@ -355,7 +380,9 @@ export default function CallModal() {
             className="absolute right-4 bottom-4 w-40 h-56 sm:w-56 sm:h-80 rounded-2xl object-cover border-2 border-[#00a884] shadow-2xl"
           />
         )}
-        {(!remoteStream || activeCall.type === "voice" || (activeCall.type === "video" && isVideoOff)) && (
+        {(!remoteStream ||
+          activeCall.type === "voice" ||
+          (activeCall.type === "video" && isVideoOff)) && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#111b21]">
             <div className="w-48 h-48 bg-[#2a3942] rounded-full flex items-center justify-center animate-pulse mb-8">
               {activeCall.type === "video" ? (
@@ -389,7 +416,10 @@ export default function CallModal() {
             {isVideoOff ? <VideoOff /> : <Video />}
           </button>
         )}
-        <button onClick={handleEndCall} className="p-4 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors">
+        <button
+          onClick={handleEndCall}
+          className="p-4 rounded-full bg-red-600 text-white hover:bg-red-700 transition-colors"
+        >
           <PhoneOff />
         </button>
       </div>

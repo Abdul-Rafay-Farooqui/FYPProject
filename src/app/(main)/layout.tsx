@@ -26,9 +26,12 @@ import { useModuleNotificationCounts } from "@/hooks/useModuleNotificationCounts
 const CallModal = dynamic(() => import("@/components/calls/CallModal"), {
   ssr: false,
 });
-const OutgoingCallModal = dynamic(() => import("@/components/calls/OutgoingCallModal"), {
-  ssr: false,
-});
+const OutgoingCallModal = dynamic(
+  () => import("@/components/calls/OutgoingCallModal"),
+  {
+    ssr: false,
+  },
+);
 
 export default function MainLayout({
   children,
@@ -41,20 +44,20 @@ export default function MainLayout({
   const closeMeetingScreen = useUIStore((s) => s.closeMeetingScreen);
   const router = useRouter();
   const pathname = usePathname();
-  
+
   // All state hooks must be called unconditionally
-  const [mainTab, setMainTab] = useState<"chat" | "organization" | "institute">("chat");
+  const [mainTab, setMainTab] = useState<"chat" | "organization" | "institute">(
+    "chat",
+  );
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
-  const [selectedInstituteId, setSelectedInstituteId] = useState<string | null>(null);
+  const [selectedInstituteId, setSelectedInstituteId] = useState<string | null>(
+    null,
+  );
   const [selectedOrgUnread, setSelectedOrgUnread] = useState(0);
   const [bellAnimation, setBellAnimation] = useState(false);
-  const {
-    chatUnread,
-    orgUnread,
-    instituteUnread,
-    refreshOrg,
-  } = useModuleNotificationCounts(user?.id);
+  const { chatUnread, orgUnread, instituteUnread, refreshOrg } =
+    useModuleNotificationCounts(user?.id);
 
   const refreshSelectedOrgUnread = useCallback(async () => {
     if (!selectedOrgId) {
@@ -99,7 +102,7 @@ export default function MainLayout({
     if (!user?.id) return;
 
     const socket = getSocket();
-    
+
     const handleNewNotification = () => {
       setBellAnimation(true);
       setTimeout(() => setBellAnimation(false), 1000);
@@ -107,10 +110,10 @@ export default function MainLayout({
       refreshSelectedOrgUnread();
     };
 
-    socket.on('notification:new', handleNewNotification);
+    socket.on("notification:new", handleNewNotification);
 
     return () => {
-      socket.off('notification:new', handleNewNotification);
+      socket.off("notification:new", handleNewNotification);
     };
   }, [user?.id, refreshOrg, refreshSelectedOrgUnread]);
 
@@ -132,7 +135,8 @@ export default function MainLayout({
   // Pages that bypass the tab layout (auth, ai-chat, etc.)
   const isAiChat = pathname === "/ai-chat";
 
-  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+  const isMobile =
+    typeof window !== "undefined" ? window.innerWidth < 768 : false;
   // On mobile chat tab: if we're on a chat route (not root), hide sidebar; if on root, hide main content
   const isOnChatRoute = mainTab === "chat" && pathname !== "/" && !isAiChat;
 
@@ -141,59 +145,85 @@ export default function MainLayout({
       {/* Tab bar — always visible at top */}
       <div className="flex items-center justify-between bg-[#111b21] border-b border-[#222d34] px-2 md:px-4 flex-shrink-0">
         {/* Mobile back button when inside a chat conversation or AI chat */}
-        {(isOnChatRoute || isAiChat) ? (
+        {isOnChatRoute || isAiChat ? (
           <button
             onClick={() => router.push("/")}
             className="md:hidden flex items-center gap-1 text-[#00a884] py-3 px-2 text-sm font-medium"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
             Back
           </button>
         ) : null}
 
         {/* Tabs — always shown on desktop; on mobile shown unless inside a chat or AI chat */}
-        <div className={`flex items-center gap-0 md:gap-1 overflow-x-auto no-scrollbar ${(isOnChatRoute || isAiChat) ? 'hidden md:flex' : 'flex'}`}>
+        <div
+          className={`flex items-center gap-0 md:gap-1 overflow-x-auto no-scrollbar ${isOnChatRoute || isAiChat ? "hidden md:flex" : "flex"}`}
+        >
           <TabBtn
             icon={<MessageCircle className="w-4 h-4" />}
             label="Chat"
             active={mainTab === "chat"}
             badgeCount={chatUnread}
-            onClick={() => { setMainTab("chat"); router.push("/"); }}
+            onClick={() => {
+              setMainTab("chat");
+              router.push("/");
+            }}
           />
           <TabBtn
             icon={<Building2 className="w-4 h-4" />}
             label="Organization"
             active={mainTab === "organization"}
             badgeCount={orgUnread}
-            onClick={() => { setMainTab("organization"); router.push("/"); }}
+            onClick={() => {
+              setMainTab("organization");
+              router.push("/");
+            }}
           />
           <TabBtn
             icon={<GraduationCap className="w-4 h-4" />}
             label="Institute"
             active={mainTab === "institute"}
             badgeCount={instituteUnread}
-            onClick={() => { setMainTab("institute"); }}
+            onClick={() => {
+              setMainTab("institute");
+            }}
           />
         </div>
 
         {/* Notification Bell */}
         {mainTab === "organization" && !isOnChatRoute && (
           <button
-            onClick={() => { if (selectedOrgId) setShowNotifications(!showNotifications); }}
+            onClick={() => {
+              if (selectedOrgId) setShowNotifications(!showNotifications);
+            }}
             disabled={!selectedOrgId}
             className={`relative p-2 rounded-lg transition-all flex-shrink-0 ${
               selectedOrgId
-                ? 'text-[#8696a0] hover:text-[#e9edef] hover:bg-[#202c33] cursor-pointer'
-                : 'text-[#8696a0]/40 cursor-not-allowed'
-            } ${bellAnimation ? 'animate-bounce' : ''}`}
-            title={selectedOrgId ? "Notifications" : "Select an organization first"}
+                ? "text-[#8696a0] hover:text-[#e9edef] hover:bg-[#202c33] cursor-pointer"
+                : "text-[#8696a0]/40 cursor-not-allowed"
+            } ${bellAnimation ? "animate-bounce" : ""}`}
+            title={
+              selectedOrgId ? "Notifications" : "Select an organization first"
+            }
           >
-            <Bell className={`w-5 h-5 ${bellAnimation ? 'text-[#00a884]' : ''}`} />
+            <Bell
+              className={`w-5 h-5 ${bellAnimation ? "text-[#00a884]" : ""}`}
+            />
             {selectedOrgId && selectedOrgUnread > 0 && (
               <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center px-1 text-[10px] font-bold bg-[#00a884] text-[#0b141a] rounded-full animate-pulse">
-                {selectedOrgUnread > 99 ? '99+' : selectedOrgUnread}
+                {selectedOrgUnread > 99 ? "99+" : selectedOrgUnread}
               </span>
             )}
           </button>
@@ -207,26 +237,33 @@ export default function MainLayout({
       <div className="flex-1 flex overflow-hidden">
         {/* Left sidebar — chat tab only */}
         {mainTab === "chat" && (
-          <div className={`
+          <div
+            className={`
             md:w-[355px] md:flex-shrink-0 md:border-r md:border-[#222d34]
-            ${isOnChatRoute || isAiChat ? 'hidden md:block' : 'w-full md:w-[355px]'}
-          `}>
+            ${isOnChatRoute || isAiChat ? "hidden md:block" : "w-full md:w-[355px]"}
+          `}
+          >
             <Sidebar />
           </div>
         )}
 
         {/* Right content area */}
-        <div className={`
+        <div
+          className={`
           flex-1 flex flex-col overflow-hidden
-          ${mainTab === "chat" && !isOnChatRoute && !isAiChat ? 'hidden md:flex' : 'flex'}
-        `}>
+          ${mainTab === "chat" && !isOnChatRoute && !isAiChat ? "hidden md:flex" : "flex"}
+        `}
+        >
           {/* Content */}
           <div className="flex-1 overflow-hidden relative">
             {mainTab === "chat" && (
               <main className="h-full w-full">{children}</main>
             )}
             {mainTab === "institute" && (
-              <div className="h-full w-full overflow-hidden" style={{ background: '#0b141a' }}>
+              <div
+                className="h-full w-full overflow-hidden"
+                style={{ background: "#0b141a" }}
+              >
                 <InstituteView onInstituteChange={setSelectedInstituteId} />
               </div>
             )}
@@ -292,10 +329,10 @@ export default function MainLayout({
               await OrganizationAPI.endMeeting(
                 activeMeetingScreen.organization_id,
                 activeMeetingScreen.team_id,
-                meetingId
+                meetingId,
               );
             } catch (error) {
-              console.error('[Meeting] Failed to end meeting:', error);
+              console.error("[Meeting] Failed to end meeting:", error);
             }
           }}
         />
