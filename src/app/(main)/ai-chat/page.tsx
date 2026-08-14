@@ -148,7 +148,7 @@ function AIChatContent() {
           <div>
             <h3 className="text-[#e9edef] font-medium leading-tight">WeConnect AI</h3>
             <p className="text-[#00a884] text-xs">
-              {loading ? 'typing...' : 'AI Assistant · OpenRouter Auto'}
+              {loading ? 'typing...' : 'AI Assistant · Live AI'}
             </p>
           </div>
         </div>
