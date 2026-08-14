@@ -1,12 +1,19 @@
 ﻿"use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { CallsAPI } from "@/lib/api/endpoints";
 import { UsersAPI } from "@/lib/api/endpoints";
 import { useAuthStore } from "@/store/authStore";
 import { useCallStore } from "@/store/callStore";
 import { getSocket } from "@/lib/socket";
 import { Phone, Video, Mic, MicOff, VideoOff, PhoneOff } from "lucide-react";
+
+const rtcConfig: RTCConfiguration = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+  ],
+};
 
 export default function CallModal() {
   const { activeCall, setActiveCall } = useCallStore();
@@ -17,9 +24,15 @@ export default function CallModal() {
   const [callDuration, setCallDuration] = useState(0);
   const [otherName, setOtherName] = useState<string>("");
   const [otherAvatar, setOtherAvatar] = useState<string | null>(null);
+  const [localStreamReady, setLocalStreamReady] = useState(false);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
 
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const localVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const pendingOfferRef = useRef<any | null>(null);
+  const offerSentRef = useRef(false);
 
   // Resolve the other party's display name
   useEffect(() => {
@@ -50,28 +63,226 @@ export default function CallModal() {
     }
   }, [activeCall?.id, user?.id]);
 
+  const getOtherUserId = useCallback(() => {
+    if (!activeCall || !user) return null;
+    return activeCall.callee_id === user.id
+      ? activeCall.caller_id
+      : activeCall.callee_id;
+  }, [activeCall, user]);
+
+  const closePeerConnection = useCallback(() => {
+    if (peerConnectionRef.current) {
+      try {
+        peerConnectionRef.current.onicecandidate = null;
+        peerConnectionRef.current.ontrack = null;
+        peerConnectionRef.current.onconnectionstatechange = null;
+        peerConnectionRef.current.close();
+      } catch {}
+      peerConnectionRef.current = null;
+    }
+    pendingOfferRef.current = null;
+    offerSentRef.current = false;
+    setLocalStreamReady(false);
+    setRemoteStream(null);
+  }, []);
+
+  const createPeerConnection = useCallback(() => {
+    if (peerConnectionRef.current) return peerConnectionRef.current;
+
+    const pc = new RTCPeerConnection(rtcConfig);
+    peerConnectionRef.current = pc;
+
+    pc.onicecandidate = (event) => {
+      if (!event.candidate || !activeCall || !user) return;
+      const otherUserId = getOtherUserId();
+      if (!otherUserId) return;
+
+      getSocket().emit("call:signal", {
+        to: otherUserId,
+        payload: {
+          call_id: activeCall.id,
+          type: "ice-candidate",
+          candidate: event.candidate,
+        },
+      });
+    };
+
+    pc.ontrack = (event) => {
+      if (event.streams?.[0]) {
+        setRemoteStream(event.streams[0]);
+      }
+    };
+
+    pc.onconnectionstatechange = () => {
+      if (
+        ["failed", "disconnected", "closed"].includes(pc.connectionState)
+      ) {
+        setActiveCall(null);
+      }
+    };
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
+        pc.addTrack(track, streamRef.current as MediaStream);
+      });
+    }
+
+    return pc;
+  }, [activeCall, getOtherUserId, setActiveCall, user]);
+
+  const sendOffer = useCallback(async () => {
+    if (!activeCall || !user || offerSentRef.current) return;
+    const otherUserId = getOtherUserId();
+    if (!otherUserId) return;
+
+    const pc = createPeerConnection();
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    getSocket().emit("call:signal", {
+      to: otherUserId,
+      payload: {
+        call_id: activeCall.id,
+        type: "offer",
+        sdp: pc.localDescription,
+      },
+    });
+
+    offerSentRef.current = true;
+  }, [activeCall, createPeerConnection, getOtherUserId, user]);
+
+  const handleOffer = useCallback(
+    async (offer: any) => {
+      if (!activeCall || !user) return;
+      const otherUserId = getOtherUserId();
+      if (!otherUserId) return;
+
+      const pc = createPeerConnection();
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+
+      getSocket().emit("call:signal", {
+        to: otherUserId,
+        payload: {
+          call_id: activeCall.id,
+          type: "answer",
+          sdp: pc.localDescription,
+        },
+      });
+    },
+    [activeCall, createPeerConnection, getOtherUserId, user],
+  );
+
   // Timer + media
   useEffect(() => {
     let timerInterval: ReturnType<typeof setInterval>;
+    let mounted = true;
+    closePeerConnection();
+
     if (activeCall && user) {
       timerInterval = setInterval(() => setCallDuration((d) => d + 1), 1000);
 
       navigator.mediaDevices
         .getUserMedia({ video: activeCall.type === "video", audio: true })
         .then((stream) => {
+          if (!mounted) {
+            stream.getTracks().forEach((track) => track.stop());
+            return;
+          }
+
           streamRef.current = stream;
-          if (videoRef.current) videoRef.current.srcObject = stream;
+          setLocalStreamReady(true);
+
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = stream;
+          }
+
+          createPeerConnection();
+
+          if (pendingOfferRef.current) {
+            const pendingOffer = pendingOfferRef.current;
+            pendingOfferRef.current = null;
+            handleOffer(pendingOffer).catch((err) => {
+              console.error("Call answer error:", err);
+            });
+          } else if (user.id === activeCall.caller_id) {
+            sendOffer().catch((err) => {
+              console.error("Call offer error:", err);
+            });
+          }
         })
         .catch((err) => console.error("Media device error:", err));
     }
     return () => {
+      mounted = false;
       clearInterval(timerInterval);
+      closePeerConnection();
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
       }
+      setLocalStreamReady(false);
+      if (localVideoRef.current) localVideoRef.current.srcObject = null;
+      if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
     };
-  }, [activeCall?.id, user]);
+  }, [activeCall?.id, activeCall?.type, activeCall?.caller_id, closePeerConnection, createPeerConnection, handleOffer, sendOffer, user]);
+
+  useEffect(() => {
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
+
+  useEffect(() => {
+    if (localVideoRef.current && streamRef.current) {
+      localVideoRef.current.srcObject = streamRef.current;
+    }
+  }, [localStreamReady]);
+
+  useEffect(() => {
+    if (!activeCall) return;
+
+    const socket = getSocket();
+    const onSignal = (data: any) => {
+      if (!data || data.from === user?.id) return;
+      const payload = data.payload;
+      if (!payload || payload.call_id !== activeCall.id) return;
+
+      if (payload.type === "offer") {
+        if (!streamRef.current) {
+          pendingOfferRef.current = payload.sdp;
+          return;
+        }
+        handleOffer(payload.sdp).catch((err) => {
+          console.error("Call offer handling error:", err);
+        });
+      }
+
+      if (payload.type === "answer") {
+        const pc = peerConnectionRef.current;
+        if (pc && payload.sdp) {
+          pc.setRemoteDescription(new RTCSessionDescription(payload.sdp)).catch(
+            (err) => console.error("Call answer handling error:", err),
+          );
+        }
+      }
+
+      if (payload.type === "ice-candidate") {
+        const pc = peerConnectionRef.current;
+        if (pc && payload.candidate) {
+          pc.addIceCandidate(new RTCIceCandidate(payload.candidate)).catch(
+            (err) => console.error("ICE candidate error:", err),
+          );
+        }
+      }
+    };
+
+    socket.on("call:signal", onSignal);
+    return () => {
+      socket.off("call:signal", onSignal);
+    };
+  }, [activeCall, handleOffer, user?.id]);
 
   // Listen for remote end/decline
   useEffect(() => {
@@ -82,12 +293,13 @@ export default function CallModal() {
         call?.id === activeCall.id &&
         ["ended", "declined", "missed", "failed"].includes(call?.status)
       ) {
+        closePeerConnection();
         setActiveCall(null);
       }
     };
     socket.on("call:update", onUpdate);
     return () => { socket.off("call:update", onUpdate); };
-  }, [activeCall?.id, setActiveCall]);
+  }, [activeCall?.id, closePeerConnection, setActiveCall]);
 
   if (!activeCall) return null;
 
@@ -96,6 +308,7 @@ export default function CallModal() {
 
   const handleEndCall = async () => {
     try { await CallsAPI.end(activeCall.id, callDuration); } catch (e) { console.error(e); }
+    closePeerConnection();
     setActiveCall(null);
   };
 
@@ -128,13 +341,21 @@ export default function CallModal() {
 
       <div className="relative w-full h-full sm:max-w-4xl sm:aspect-video sm:h-auto bg-black sm:rounded-xl overflow-hidden shadow-2xl">
         <video
-          ref={videoRef}
+          ref={remoteVideoRef}
           autoPlay
           playsInline
-          muted
-          className={`w-full h-full object-cover ${activeCall.type === "video" && !isVideoOff ? "block" : "hidden"}`}
+          className={`w-full h-full object-cover ${activeCall.type === "video" && remoteStream && !isVideoOff ? "block" : "hidden"}`}
         />
-        {(!streamRef.current || activeCall.type === "voice" || (activeCall.type === "video" && isVideoOff)) && (
+        {activeCall.type === "video" && localStreamReady && (
+          <video
+            ref={localVideoRef}
+            autoPlay
+            playsInline
+            muted
+            className="absolute right-4 bottom-4 w-40 h-56 sm:w-56 sm:h-80 rounded-2xl object-cover border-2 border-[#00a884] shadow-2xl"
+          />
+        )}
+        {(!remoteStream || activeCall.type === "voice" || (activeCall.type === "video" && isVideoOff)) && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#111b21]">
             <div className="w-48 h-48 bg-[#2a3942] rounded-full flex items-center justify-center animate-pulse mb-8">
               {activeCall.type === "video" ? (
@@ -143,9 +364,11 @@ export default function CallModal() {
                 <Phone className="w-24 h-24 text-[#00a884]" />
               )}
             </div>
-            {!streamRef.current && (
+            {!streamRef.current ? (
               <p className="text-[#8696a0]">Requesting media access...</p>
-            )}
+            ) : !remoteStream ? (
+              <p className="text-[#8696a0]">Connecting call...</p>
+            ) : null}
           </div>
         )}
       </div>

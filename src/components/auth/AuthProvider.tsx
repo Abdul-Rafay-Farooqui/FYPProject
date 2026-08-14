@@ -17,6 +17,7 @@ export default function AuthProvider({
   const { setUser, setProfile, setAuthLoaded, profile, user } = useAuthStore();
   const setIncomingCall = useCallStore((s) => s.setIncomingCall);
   const setActiveCall = useCallStore((s) => s.setActiveCall);
+  const setOutgoingCall = useCallStore((s) => s.setOutgoingCall);
   const setMeetingStartNotice = useUIStore((s) => s.setMeetingStartNotice);
   const router = useRouter();
   const pathname = usePathname();
@@ -69,9 +70,17 @@ export default function AuthProvider({
       if (call?.status === "ringing") setIncomingCall(call);
     };
     const onUpdate = (call: any) => {
+      if (call?.status === 'active') {
+        // Callee accepted — move outgoing to active
+        const { outgoingCall } = useCallStore.getState();
+        if (outgoingCall?.id === call?.id) {
+          setOutgoingCall(null);
+          setActiveCall({ ...outgoingCall, ...call });
+        }
+      }
       if (["ended", "declined", "failed", "missed"].includes(call?.status)) {
         setIncomingCall(null);
-        // Also close the active call screen (e.g. when the callee declines)
+        setOutgoingCall(null);
         const { activeCall } = useCallStore.getState();
         if (activeCall?.id === call?.id) setActiveCall(null);
       }
@@ -97,7 +106,7 @@ export default function AuthProvider({
       socket.off("call:update", onUpdate);
       socket.off("meeting:started", onMeetingStarted);
     };
-  }, [user?.id, setIncomingCall, setActiveCall, setMeetingStartNotice]);
+  }, [user?.id, setIncomingCall, setActiveCall, setOutgoingCall, setMeetingStartNotice]);
 
   // ── 3. Presence: mark online / offline via backend ────────────────────────
   useEffect(() => {

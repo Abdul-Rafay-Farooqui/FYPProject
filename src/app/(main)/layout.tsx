@@ -26,6 +26,9 @@ import { useModuleNotificationCounts } from "@/hooks/useModuleNotificationCounts
 const CallModal = dynamic(() => import("@/components/calls/CallModal"), {
   ssr: false,
 });
+const OutgoingCallModal = dynamic(() => import("@/components/calls/OutgoingCallModal"), {
+  ssr: false,
+});
 
 export default function MainLayout({
   children,
@@ -238,6 +241,7 @@ export default function MainLayout({
 
       <AddContactModal />
       <CallModal />
+      <OutgoingCallModal />
       <IncomingCallModal />
       <ForwardMessageModal />
       <DeleteMessageModal />

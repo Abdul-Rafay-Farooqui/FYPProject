@@ -18,7 +18,7 @@ import {
 export default function ChatHeader({ conversation }: { conversation: Conversation }) {
   const otherParticipant = conversation.other_participant;
   const { user } = useAuthStore();
-  const { setActiveCall } = useCallStore();
+  const { setActiveCall, setOutgoingCall } = useCallStore();
   const { setContactInfoOpen, setChatSearchOpen } = useUIStore();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -106,7 +106,7 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
         conversation_id: conversation.id,
         type,
       });
-      if (data) setActiveCall(data);
+      if (data) setOutgoingCall(data);
     } catch (e: any) {
       console.error('Call error:', e);
       showToast('Call failed', 'error');
