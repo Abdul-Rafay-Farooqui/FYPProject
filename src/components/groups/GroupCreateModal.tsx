@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Users, Check, Camera } from 'lucide-react';
-import { ContactsAPI, GroupsAPI, MediaAPI } from '@/lib/api/endpoints';
+import { X, Users, Check, Camera, UserPlus, Search, Loader2 } from 'lucide-react';
+import { ContactsAPI, ConversationsAPI, GroupsAPI, MediaAPI, UsersAPI } from '@/lib/api/endpoints';
+import { useUIStore } from '@/store/uiStore';
 
 interface Props {
   open: boolean;
@@ -23,7 +24,29 @@ export default function GroupCreateModal({
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [searchPhone, setSearchPhone] = useState('');
+  const [searchingContact, setSearchingContact] = useState(false);
+  const [searchContactError, setSearchContactError] = useState<string | null>(null);
+  const [searchResult, setSearchResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const { isAddContactModalOpen, setAddContactModalOpen } = useUIStore();
+
+  const loadPeopleFromConversations = async () => {
+    try {
+      const data = await ConversationsAPI.list();
+      const people = (data || [])
+        .filter((conv: any) => conv.type !== 'group' && conv.other_participant?.id)
+        .map((conv: any) => ({
+          id: conv.other_participant.id,
+          display_name: conv.other_participant.display_name,
+          avatar_url: conv.other_participant.avatar_url,
+          phone: conv.other_participant.phone,
+        }));
+      setContacts(people);
+    } catch {
+      setContacts([]);
+    }
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -32,11 +55,17 @@ export default function GroupCreateModal({
     setName('');
     setDescription('');
     setAvatarUrl(null);
+    setSearchPhone('');
+    setSearchResult(null);
+    setSearchContactError(null);
     setError(null);
-    ContactsAPI.list()
-      .then(setContacts)
-      .catch(() => setContacts([]));
+    loadPeopleFromConversations();
   }, [open]);
+
+  useEffect(() => {
+    if (!open || isAddContactModalOpen) return;
+    loadPeopleFromConversations();
+  }, [open, isAddContactModalOpen]);
 
   if (!open) return null;
 
@@ -56,6 +85,53 @@ export default function GroupCreateModal({
       setError('Failed to upload avatar');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const refreshContacts = async () => {
+    await loadPeopleFromConversations();
+  };
+
+  const handleSearchContact = async () => {
+    const phone = searchPhone.trim();
+    if (!phone) {
+      setSearchContactError('Enter a phone number');
+      return;
+    }
+
+    setSearchingContact(true);
+    setSearchContactError(null);
+    setSearchResult(null);
+
+    try {
+      const result = await UsersAPI.searchByPhone(phone);
+      if (!result) {
+        setSearchContactError('No WeConnect user found with that number.');
+        return;
+      }
+      setSearchResult(result);
+    } catch (err: any) {
+      setSearchContactError(
+        err?.response?.status === 404
+          ? 'No WeConnect user found with that number.'
+          : err?.response?.data?.message || 'Search failed',
+      );
+    } finally {
+      setSearchingContact(false);
+    }
+  };
+
+  const addFoundContact = async () => {
+    if (!searchResult) return;
+    try {
+      await ContactsAPI.add(searchResult.id);
+      setSelected((prev) => (prev.includes(searchResult.id) ? prev : [...prev, searchResult.id]));
+      await refreshContacts();
+      setSearchPhone('');
+      setSearchResult(null);
+      setSearchContactError(null);
+    } catch (err: any) {
+      setSearchContactError(err?.response?.data?.message || 'Failed to add contact');
     }
   };
 
@@ -92,21 +168,80 @@ export default function GroupCreateModal({
 
         {step === 'members' ? (
           <>
-            <div className="px-4 py-3 border-b border-[#222d34] text-[#8696a0] text-xs">
-              {selected.length} selected
+            <div className="px-4 py-3 border-b border-[#222d34] space-y-3 text-[#8696a0] text-xs">
+              <div className="flex items-center justify-between gap-3">
+                <span>{selected.length} selected</span>
+                <button
+                  type="button"
+                  onClick={() => setAddContactModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[#00a884]/10 text-[#00a884] px-2.5 py-1.5 font-medium hover:bg-[#00a884]/20 transition-colors"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  Add contact
+                </button>
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  value={searchPhone}
+                  onChange={(e) => setSearchPhone(e.target.value)}
+                  placeholder="Search by phone"
+                  className="flex-1 bg-[#202c33] text-[#e9edef] px-3 py-2 rounded-md outline-none placeholder:text-[#8696a0]"
+                />
+                <button
+                  type="button"
+                  onClick={handleSearchContact}
+                  disabled={searchingContact}
+                  className="bg-[#00a884] text-[#111b21] px-3 py-2 rounded-md font-medium disabled:opacity-60 flex items-center justify-center"
+                >
+                  {searchingContact ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {searchContactError && (
+                <p className="text-red-400 text-[11px]">{searchContactError}</p>
+              )}
+
+              {searchResult && (
+                <div className="flex items-center justify-between gap-3 rounded-md bg-[#202c33] p-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {searchResult.avatar_url ? (
+                      <img src={searchResult.avatar_url} alt={searchResult.display_name} className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-[#2a3942] flex items-center justify-center text-[#e9edef] text-xs font-medium">
+                        {searchResult.display_name?.[0]?.toUpperCase() || '?'}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-[#e9edef] text-[11px] truncate">{searchResult.display_name}</p>
+                      <p className="text-[#8696a0] text-[10px] truncate">{searchResult.phone}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addFoundContact}
+                    className="text-[#00a884] text-[11px] font-medium hover:underline"
+                  >
+                    Add
+                  </button>
+                </div>
+              )}
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar">
               {contacts.length === 0 && (
-                <p className="p-6 text-[#8696a0] text-sm text-center">
-                  No contacts. Add contacts first.
-                </p>
+                <div className="p-6 text-center">
+                  <p className="text-[#8696a0] text-sm">
+                    No contacts yet. Add a contact to create a group.
+                  </p>
+                </div>
               )}
               {contacts.map((c: any) => {
-                const cu = c.contact;
+                const cu = c.contact || c.other_participant || c;
+                if (!cu?.id) return null;
                 const sel = selected.includes(cu.id);
                 return (
                   <button
-                    key={c.id}
+                    key={cu.id}
                     onClick={() => toggle(cu.id)}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#202c33] ${
                       sel ? 'bg-[#202c33]' : ''

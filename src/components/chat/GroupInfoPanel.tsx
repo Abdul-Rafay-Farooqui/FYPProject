@@ -1,23 +1,33 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { X, Users, UserPlus, LogOut, Pencil, Shield, Trash2, MessageSquareOff } from 'lucide-react';
-import { GroupsAPI, ContactsAPI } from '@/lib/api/endpoints';
-import { useAuthStore } from '@/store/authStore';
-import { useUIStore } from '@/store/uiStore';
-import { useRouter } from 'next/navigation';
-import type { GroupDetail } from '@/types';
+import { useEffect, useState, useCallback } from "react";
+import {
+  X,
+  Users,
+  UserPlus,
+  LogOut,
+  Pencil,
+  Shield,
+  Trash2,
+  MessageSquareOff,
+} from "lucide-react";
+import { GroupsAPI, ContactsAPI } from "@/lib/api/endpoints";
+import { useAuthStore } from "@/store/authStore";
+import { useUIStore } from "@/store/uiStore";
+import { useRouter } from "next/navigation";
+import type { GroupDetail } from "@/types";
 
 interface Props {
-  groupId: string;
+  groupId?: string;
+  conversation?: any;
 }
 
-export default function GroupInfoPanel({ groupId }: Props) {
+export default function GroupInfoPanel({ groupId, conversation }: Props) {
   const [group, setGroup] = useState<GroupDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [showAddMembers, setShowAddMembers] = useState(false);
   const [contacts, setContacts] = useState<any[]>([]);
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
@@ -25,18 +35,42 @@ export default function GroupInfoPanel({ groupId }: Props) {
   const { setContactInfoOpen } = useUIStore();
   const router = useRouter();
 
+  const fallbackGroup = useCallback(() => {
+    const targetId = groupId || conversation?.id || "group-fallback";
+    return {
+      id: targetId,
+      name: conversation?.name || "Group",
+      description: conversation?.description || "No description yet.",
+      avatar_url: conversation?.avatar_url || null,
+      members: (conversation?.participants || []).map((p: any) => ({
+        user_id: p.user_id,
+        display_name: p.user?.display_name || p.profile?.display_name || "User",
+        avatar_url: p.user?.avatar_url || p.profile?.avatar_url || null,
+        role: p.role || "member",
+      })),
+      send_permission: conversation?.send_permission || "all",
+      edit_permission: conversation?.edit_permission || "all",
+    } as GroupDetail;
+  }, [groupId, conversation]);
+
   const fetchGroup = useCallback(async () => {
+    const defaultGroup = fallbackGroup();
+
     try {
-      const data = await GroupsAPI.get(groupId);
-      setGroup(data);
-      setName(data?.name || '');
-      setDescription(data?.description || '');
+      const data = groupId ? await GroupsAPI.get(groupId) : null;
+      const resolvedGroup = data || defaultGroup;
+      setGroup(resolvedGroup as GroupDetail);
+      setName(resolvedGroup?.name || "");
+      setDescription(resolvedGroup?.description || "");
     } catch (e) {
-      console.error('Group fetch error:', e);
+      console.error("Group fetch error:", e);
+      setGroup(defaultGroup);
+      setName(defaultGroup.name || "");
+      setDescription(defaultGroup.description || "");
     } finally {
       setLoading(false);
     }
-  }, [groupId]);
+  }, [groupId, fallbackGroup]);
 
   useEffect(() => {
     fetchGroup();
@@ -49,64 +83,76 @@ export default function GroupInfoPanel({ groupId }: Props) {
       </aside>
     );
   }
-  if (!group) return null;
+  const effectiveGroup = group || fallbackGroup();
 
-  const isAdmin = group.members?.some(
-    (m) => m.user_id === user?.id && m.role === 'admin',
+  const isAdmin = effectiveGroup.members?.some(
+    (m) => m.user_id === user?.id && m.role === "admin",
   );
 
   const handleSave = async () => {
+    if (!groupId && !conversation?.id) return;
     try {
-      await GroupsAPI.update(groupId, {
+      await GroupsAPI.update(groupId || conversation.id, {
         name: name.trim(),
         description: description.trim(),
       });
       setEditing(false);
       fetchGroup();
     } catch (e: any) {
-      alert(e?.response?.data?.message || 'Failed to update');
+      alert(e?.response?.data?.message || "Failed to update");
     }
   };
 
   const handleTogglePermission = async (
-    field: 'send_permission' | 'edit_permission',
-    next: 'all' | 'admins',
+    field: "send_permission" | "edit_permission",
+    next: "all" | "admins",
   ) => {
+    const targetId = groupId || conversation?.id;
+    if (!targetId) return;
     try {
-      await GroupsAPI.update(groupId, { [field]: next });
+      await GroupsAPI.update(targetId, { [field]: next });
       fetchGroup();
     } catch (e: any) {
-      alert(e?.response?.data?.message || 'Failed');
+      alert(e?.response?.data?.message || "Failed");
     }
   };
 
-  const handleToggleRole = async (userId: string, currentRole: 'admin' | 'member') => {
+  const handleToggleRole = async (
+    userId: string,
+    currentRole: "admin" | "member",
+  ) => {
+    const targetId = groupId || conversation?.id;
+    if (!targetId) return;
     try {
-      const role = currentRole === 'admin' ? 'member' : 'admin';
-      await GroupsAPI.setRole(groupId, userId, role);
+      const role = currentRole === "admin" ? "member" : "admin";
+      await GroupsAPI.setRole(targetId, userId, role);
       fetchGroup();
     } catch (e: any) {
-      alert(e?.response?.data?.message || 'Failed');
+      alert(e?.response?.data?.message || "Failed");
     }
   };
 
   const handleRemoveMember = async (userId: string) => {
-    if (!window.confirm('Remove this member from the group?')) return;
+    const targetId = groupId || conversation?.id;
+    if (!window.confirm("Remove this member from the group?")) return;
+    if (!targetId) return;
     try {
-      await GroupsAPI.removeMember(groupId, userId);
+      await GroupsAPI.removeMember(targetId, userId);
       fetchGroup();
     } catch (e: any) {
-      alert(e?.response?.data?.message || 'Failed');
+      alert(e?.response?.data?.message || "Failed");
     }
   };
 
   const handleLeave = async () => {
-    if (!window.confirm('Leave this group?')) return;
+    const targetId = groupId || conversation?.id;
+    if (!window.confirm("Leave this group?")) return;
+    if (!targetId) return;
     try {
-      await GroupsAPI.leave(groupId);
-      router.push('/');
+      await GroupsAPI.leave(targetId);
+      router.push("/");
     } catch (e: any) {
-      alert(e?.response?.data?.message || 'Failed');
+      alert(e?.response?.data?.message || "Failed");
     }
   };
 
@@ -122,39 +168,46 @@ export default function GroupInfoPanel({ groupId }: Props) {
   };
 
   const handleAddMembers = async () => {
-    if (selectedContacts.length === 0) return;
+    const targetId = groupId || conversation?.id;
+    if (selectedContacts.length === 0 || !targetId) return;
     try {
-      await GroupsAPI.addMembers(groupId, selectedContacts);
+      await GroupsAPI.addMembers(targetId, selectedContacts);
       setShowAddMembers(false);
       fetchGroup();
     } catch (e: any) {
-      alert(e?.response?.data?.message || 'Failed');
+      alert(e?.response?.data?.message || "Failed");
     }
   };
 
-  const existingIds = new Set(group.members?.map((m) => m.user_id) || []);
+  const existingIds = new Set(
+    effectiveGroup.members?.map((m) => m.user_id) || [],
+  );
 
   return (
-    <aside className="w-[400px] flex-shrink-0 bg-[#111b21] border-l border-[#222d34] flex flex-col">
+    <aside className="w-[400px] flex-shrink-0 relative z-30 bg-[radial-gradient(circle_at_top,_rgba(15,116,143,0.22),_rgba(10,18,22,0.96)_38%,_rgba(9,13,17,1)_100%)] border-l border-[#1c5d63] shadow-[inset_1px_0_0_rgba(0,255,200,0.12)] flex flex-col">
       {/* Header */}
-      <div className="flex items-center px-4 py-3 bg-[#202c33] min-h-[60px] gap-4">
+      <div className="flex items-center px-4 py-3 bg-[#12333a] min-h-[60px] gap-4 border-b border-[#1c5d63]">
         <button
           onClick={() => setContactInfoOpen(false)}
-          className="text-[#aebac1] hover:text-[#e9edef]"
+          className="text-[#b7f4eb] hover:text-white bg-[#1d4f56] rounded-full p-1.5 transition-colors"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
-        <h2 className="text-[#e9edef] font-medium">Group info</h2>
+        <h2 className="text-[#e9edef] font-medium tracking-wide">Group info</h2>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {/* Avatar + Name */}
-        <div className="flex flex-col items-center py-8 bg-[#0b141a] border-b-8 border-[#0b141a]">
-          {group.avatar_url ? (
-            <img src={group.avatar_url} alt={group.name} className="w-40 h-40 rounded-full object-cover" />
+        <div className="flex flex-col items-center py-8 bg-[linear-gradient(180deg,_rgba(13,35,40,0.9),_rgba(9,17,20,0.98))] border-b-8 border-[#0c181d]">
+          {effectiveGroup.avatar_url ? (
+            <img
+              src={effectiveGroup.avatar_url}
+              alt={effectiveGroup.name}
+              className="w-40 h-40 rounded-full object-cover ring-2 ring-[#2ad4be]/30 shadow-[0_0_24px_rgba(42,212,190,0.22)]"
+            />
           ) : (
-            <div className="w-40 h-40 rounded-full bg-[#2a3942] flex items-center justify-center">
-              <Users className="w-20 h-20 text-[#8696a0]" />
+            <div className="w-40 h-40 rounded-full bg-[#173c43] flex items-center justify-center ring-2 ring-[#2ad4be]/25 shadow-[0_0_24px_rgba(42,212,190,0.18)]">
+              <Users className="w-20 h-20 text-[#b7f4eb]" />
             </div>
           )}
           {editing ? (
@@ -189,7 +242,9 @@ export default function GroupInfoPanel({ groupId }: Props) {
           ) : (
             <>
               <div className="mt-4 flex items-center gap-2">
-                <h3 className="text-[#e9edef] text-2xl">{group.name}</h3>
+                <h3 className="text-[#e9edef] text-2xl">
+                  {effectiveGroup.name}
+                </h3>
                 {isAdmin && (
                   <button
                     onClick={() => setEditing(true)}
@@ -201,11 +256,11 @@ export default function GroupInfoPanel({ groupId }: Props) {
                 )}
               </div>
               <p className="text-[#8696a0] text-sm mt-1">
-                Group · {group.members?.length || 0} members
+                Group · {effectiveGroup.members?.length || 0} members
               </p>
-              {group.description && (
+              {effectiveGroup.description && (
                 <p className="text-[#aebac1] text-sm mt-3 px-6 text-center">
-                  {group.description}
+                  {effectiveGroup.description}
                 </p>
               )}
             </>
@@ -214,31 +269,39 @@ export default function GroupInfoPanel({ groupId }: Props) {
 
         {/* Permissions (admin only) */}
         {isAdmin && (
-          <div className="bg-[#111b21] border-b-8 border-[#0b141a] py-2">
+          <div className="bg-[#0f1d22] border-b-8 border-[#0b141a] py-2">
             <div className="px-6 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <MessageSquareOff className="w-5 h-5 text-[#8696a0]" />
                 <div>
                   <div className="text-[#e9edef] text-sm">Send messages</div>
                   <div className="text-[#8696a0] text-xs">
-                    {group.send_permission === 'admins' ? 'Only admins' : 'All members'}
+                    {effectiveGroup.send_permission === "admins"
+                      ? "Only admins"
+                      : "All members"}
                   </div>
                 </div>
               </div>
               <button
                 onClick={() =>
                   handleTogglePermission(
-                    'send_permission',
-                    group.send_permission === 'admins' ? 'all' : 'admins',
+                    "send_permission",
+                    effectiveGroup.send_permission === "admins"
+                      ? "all"
+                      : "admins",
                   )
                 }
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  group.send_permission === 'admins' ? 'bg-[#00a884]' : 'bg-[#2a3942]'
+                  effectiveGroup.send_permission === "admins"
+                    ? "bg-[#00a884]"
+                    : "bg-[#2a3942]"
                 }`}
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    group.send_permission === 'admins' ? 'translate-x-6' : 'translate-x-1'
+                    effectiveGroup.send_permission === "admins"
+                      ? "translate-x-6"
+                      : "translate-x-1"
                   }`}
                 />
               </button>
@@ -250,24 +313,32 @@ export default function GroupInfoPanel({ groupId }: Props) {
                 <div>
                   <div className="text-[#e9edef] text-sm">Edit group info</div>
                   <div className="text-[#8696a0] text-xs">
-                    {group.edit_permission === 'admins' ? 'Only admins' : 'All members'}
+                    {effectiveGroup.edit_permission === "admins"
+                      ? "Only admins"
+                      : "All members"}
                   </div>
                 </div>
               </div>
               <button
                 onClick={() =>
                   handleTogglePermission(
-                    'edit_permission',
-                    group.edit_permission === 'admins' ? 'all' : 'admins',
+                    "edit_permission",
+                    effectiveGroup.edit_permission === "admins"
+                      ? "all"
+                      : "admins",
                   )
                 }
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  group.edit_permission === 'admins' ? 'bg-[#00a884]' : 'bg-[#2a3942]'
+                  effectiveGroup.edit_permission === "admins"
+                    ? "bg-[#00a884]"
+                    : "bg-[#2a3942]"
                 }`}
               >
                 <span
                   className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    group.edit_permission === 'admins' ? 'translate-x-6' : 'translate-x-1'
+                    effectiveGroup.edit_permission === "admins"
+                      ? "translate-x-6"
+                      : "translate-x-1"
                   }`}
                 />
               </button>
@@ -276,39 +347,47 @@ export default function GroupInfoPanel({ groupId }: Props) {
         )}
 
         {/* Members */}
-        <div className="bg-[#111b21] border-b-8 border-[#0b141a] py-2">
+        <div className="bg-[#0f1d22] border-b-8 border-[#0b141a] py-2">
           <div className="px-6 py-3 flex items-center justify-between">
-            <span className="text-[#8696a0] text-sm">
-              {group.members?.length || 0} members
+            <span className="text-[#b7f4eb] text-sm font-medium">
+              {effectiveGroup.members?.length || 0} members
             </span>
             {isAdmin && (
               <button
                 onClick={openAddMembers}
-                className="text-[#00a884] text-sm flex items-center gap-1 hover:underline"
+                className="text-[#54d2bf] text-sm flex items-center gap-1 hover:underline"
               >
                 <UserPlus className="w-4 h-4" />
                 Add
               </button>
             )}
           </div>
-          {group.members?.map((m) => (
+          {effectiveGroup.members?.map((m) => (
             <div
               key={m.user_id}
               className="flex items-center gap-3 px-6 py-2 hover:bg-[#202c33]"
             >
               <div className="w-10 h-10 rounded-full bg-[#2a3942] flex items-center justify-center overflow-hidden">
                 {m.avatar_url ? (
-                  <img src={m.avatar_url} alt={m.display_name} className="w-full h-full object-cover" />
+                  <img
+                    src={m.avatar_url}
+                    alt={m.display_name}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  <span className="text-[#e9edef]">{m.display_name?.[0]?.toUpperCase() || '?'}</span>
+                  <span className="text-[#e9edef]">
+                    {m.display_name?.[0]?.toUpperCase() || "?"}
+                  </span>
                 )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[#e9edef] text-sm truncate">
                   {m.display_name}
-                  {m.user_id === user?.id && <span className="text-[#8696a0] text-xs ml-1">(You)</span>}
+                  {m.user_id === user?.id && (
+                    <span className="text-[#8696a0] text-xs ml-1">(You)</span>
+                  )}
                 </div>
-                {m.role === 'admin' && (
+                {m.role === "admin" && (
                   <div className="text-[#00a884] text-xs flex items-center gap-1">
                     <Shield className="w-3 h-3" /> Group admin
                   </div>
@@ -320,7 +399,7 @@ export default function GroupInfoPanel({ groupId }: Props) {
                     onClick={() => handleToggleRole(m.user_id, m.role)}
                     className="text-xs text-[#00a884] hover:underline px-2"
                   >
-                    {m.role === 'admin' ? 'Demote' : 'Promote'}
+                    {m.role === "admin" ? "Demote" : "Promote"}
                   </button>
                   <button
                     onClick={() => handleRemoveMember(m.user_id)}
@@ -336,10 +415,10 @@ export default function GroupInfoPanel({ groupId }: Props) {
         </div>
 
         {/* Exit */}
-        <div className="bg-[#111b21] py-2">
+        <div className="bg-[#0f1d22] py-2">
           <button
             onClick={handleLeave}
-            className="w-full text-left px-6 py-3 text-red-400 flex items-center gap-3 hover:bg-[#202c33]"
+            className="w-full text-left px-6 py-3 text-red-400 flex items-center gap-3 hover:bg-[#15343d]"
           >
             <LogOut className="w-5 h-5" />
             Exit group
@@ -387,12 +466,20 @@ export default function GroupInfoPanel({ groupId }: Props) {
                       />
                       <div className="w-9 h-9 rounded-full bg-[#2a3942] flex items-center justify-center overflow-hidden">
                         {u.avatar_url ? (
-                          <img src={u.avatar_url} alt={u.display_name} className="w-full h-full object-cover" />
+                          <img
+                            src={u.avatar_url}
+                            alt={u.display_name}
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
-                          <span className="text-[#e9edef] text-sm">{u.display_name?.[0]?.toUpperCase()}</span>
+                          <span className="text-[#e9edef] text-sm">
+                            {u.display_name?.[0]?.toUpperCase()}
+                          </span>
                         )}
                       </div>
-                      <span className="text-[#e9edef] text-sm">{u.display_name}</span>
+                      <span className="text-[#e9edef] text-sm">
+                        {u.display_name}
+                      </span>
                     </label>
                   );
                 })}
@@ -403,7 +490,7 @@ export default function GroupInfoPanel({ groupId }: Props) {
                 disabled={selectedContacts.length === 0}
                 className="px-4 py-2 bg-[#00a884] text-[#111b21] rounded font-medium disabled:opacity-50"
               >
-                Add {selectedContacts.length || ''}
+                Add {selectedContacts.length || ""}
               </button>
             </div>
           </div>

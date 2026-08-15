@@ -239,7 +239,7 @@ export default function MainLayout({
         {mainTab === "chat" && (
           <div
             className={`
-            md:w-[355px] md:flex-shrink-0 md:border-r md:border-[#222d34]
+            md:w-[355px] md:flex-shrink-0
             ${isOnChatRoute || isAiChat ? "hidden md:block" : "w-full md:w-[355px]"}
           `}
           >

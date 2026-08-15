@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import ChatHeader from './ChatHeader';
-import ChatSearchBar from './ChatSearchBar';
-import ContactInfoPanel from './ContactInfoPanel';
-import GroupInfoPanel from './GroupInfoPanel';
-import MessageBubble from './MessageBubble';
-import MessageInput from './MessageInput';
-import { ConversationsAPI, MessagesAPI, BlocksAPI } from '@/lib/api/endpoints';
-import { getSocket } from '@/lib/socket';
-import { useChatStore } from '@/store/chatStore';
-import { useAuthStore } from '@/store/authStore';
-import { useUIStore } from '@/store/uiStore';
-import { Message } from '@/types';
-import { format, isToday, isYesterday } from 'date-fns';
-import { Pin, X, Trash2, Forward, XCircle } from 'lucide-react';
+import { useEffect, useRef, useState, useCallback } from "react";
+import ChatHeader from "./ChatHeader";
+import ChatSearchBar from "./ChatSearchBar";
+import ContactInfoPanel from "./ContactInfoPanel";
+import GroupInfoPanel from "./GroupInfoPanel";
+import MessageBubble from "./MessageBubble";
+import MessageInput from "./MessageInput";
+import { ConversationsAPI, MessagesAPI, BlocksAPI } from "@/lib/api/endpoints";
+import { getSocket } from "@/lib/socket";
+import { useChatStore } from "@/store/chatStore";
+import { useAuthStore } from "@/store/authStore";
+import { useUIStore } from "@/store/uiStore";
+import { Message } from "@/types";
+import { format, isToday, isYesterday } from "date-fns";
+import { Pin, X, Trash2, Forward, XCircle } from "lucide-react";
 
 function collectReadReceiptIds(messages: Message[], userId?: string) {
   const readIds = new Set<string>();
@@ -32,23 +32,42 @@ function collectReadReceiptIds(messages: Message[], userId?: string) {
   return readIds;
 }
 
-export default function ChatWindow({ conversationId }: { conversationId: string }) {
+export default function ChatWindow({
+  conversationId,
+  showHeader = true,
+}: {
+  conversationId: string;
+  showHeader?: boolean;
+}) {
   const {
-    activeConversation, setActiveConversation,
-    messages, setMessages, addMessage, updateMessage, removeMessage,
-    setStarredMessageIds, setPinnedMessageId, pinnedMessageId,
+    activeConversation,
+    setActiveConversation,
+    messages,
+    setMessages,
+    addMessage,
+    updateMessage,
+    removeMessage,
+    setStarredMessageIds,
+    setPinnedMessageId,
+    pinnedMessageId,
   } = useChatStore();
   const { user } = useAuthStore();
   const {
-    isContactInfoOpen, isChatSearchOpen, 
-    isSelectionMode, selectedMessages, clearSelectedMessages,
-    setForwardMessage, setDeleteMessage, setSelectionMode,
+    isContactInfoOpen,
+    isChatSearchOpen,
+    isSelectionMode,
+    selectedMessages,
+    clearSelectedMessages,
+    setForwardMessage,
+    setDeleteMessage,
+    setSelectionMode,
+    setContactInfoOpen,
   } = useUIStore();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [readMessageIds, setReadMessageIds] = useState<Set<string>>(new Set());
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isBlocked, setIsBlocked] = useState(false);
   const isBlockedRef = useRef(false);
   const loadedConvRef = useRef<string | null>(null);
@@ -64,7 +83,7 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
   }, []);
 
   // Ref to hold the latest load function (avoids stale closures)
-  const loadRef = useRef<() => Promise<void>>();
+  const loadRef = useRef<(() => Promise<void>) | null>(null);
 
   useEffect(() => {
     setReadMessageIds(new Set());
@@ -104,7 +123,10 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
       // Mark messages as read for read receipts
       if (msgs && msgs.length > 0) {
         const unreadIds = msgs
-          .filter((m: Message) => m.sender_id !== user?.id && !m.is_deleted_for_everyone)
+          .filter(
+            (m: Message) =>
+              m.sender_id !== user?.id && !m.is_deleted_for_everyone,
+          )
           .map((m: Message) => m.id);
         if (unreadIds.length > 0) {
           MessagesAPI.markRead(unreadIds).catch(() => {});
@@ -123,11 +145,15 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
         setPinnedMessageId(null);
       }
     } catch (e: any) {
-      setError(e?.response?.data?.message || e?.message || 'Unknown error');
+      setError(e?.response?.data?.message || e?.message || "Unknown error");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    setContactInfoOpen(false);
+  }, [conversationId, setContactInfoOpen]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -137,7 +163,7 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
 
     // ── Socket.IO realtime listeners ──
     const socket = getSocket();
-    socket.emit('conversation:join', { conversation_id: conversationId });
+    socket.emit("conversation:join", { conversation_id: conversationId });
 
     const onNewMessage = (msg: Message) => {
       if (msg.conversation_id !== conversationId) return;
@@ -154,7 +180,10 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
       updateMessage(msg);
     };
 
-    const onMessageRead = (data: { message_ids: string[]; user_id: string }) => {
+    const onMessageRead = (data: {
+      message_ids: string[];
+      user_id: string;
+    }) => {
       if (data.user_id === user.id) return;
 
       setReadMessageIds((prev) => {
@@ -166,7 +195,10 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
       });
     };
 
-    const onMessagePinned = (data: { conversation_id: string; message_id: string | null }) => {
+    const onMessagePinned = (data: {
+      conversation_id: string;
+      message_id: string | null;
+    }) => {
       if (data.conversation_id === conversationId) {
         setPinnedMessageId(data.message_id);
       }
@@ -182,40 +214,44 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
       loadRef.current?.();
     };
 
-    socket.on('message:new', onNewMessage);
-    socket.on('message:update', onMessageUpdate);
-    socket.on('message:read', onMessageRead);
-    socket.on('message:pinned', onMessagePinned);
-    socket.on('conversation:update', onConversationUpdate);
-    socket.on('block:update', onBlockUpdate);
+    socket.on("message:new", onNewMessage);
+    socket.on("message:update", onMessageUpdate);
+    socket.on("message:read", onMessageRead);
+    socket.on("message:pinned", onMessagePinned);
+    socket.on("conversation:update", onConversationUpdate);
+    socket.on("block:update", onBlockUpdate);
 
     return () => {
-      socket.emit('conversation:leave', { conversation_id: conversationId });
-      socket.off('message:new', onNewMessage);
-      socket.off('message:update', onMessageUpdate);
-      socket.off('message:read', onMessageRead);
-      socket.off('message:pinned', onMessagePinned);
-      socket.off('conversation:update', onConversationUpdate);
-      socket.off('block:update', onBlockUpdate);
+      socket.emit("conversation:leave", { conversation_id: conversationId });
+      socket.off("message:new", onNewMessage);
+      socket.off("message:update", onMessageUpdate);
+      socket.off("message:read", onMessageRead);
+      socket.off("message:pinned", onMessagePinned);
+      socket.off("conversation:update", onConversationUpdate);
+      socket.off("block:update", onBlockUpdate);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, user?.id]);
 
-  useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
 
   // Reset search query when search closes
   useEffect(() => {
-    if (!isChatSearchOpen) setSearchQuery('');
+    if (!isChatSearchOpen) setSearchQuery("");
   }, [isChatSearchOpen]);
 
   const getDateLabel = (dateStr: string) => {
     const date = new Date(dateStr);
-    if (isToday(date)) return 'Today';
-    if (isYesterday(date)) return 'Yesterday';
-    return format(date, 'MMMM d, yyyy');
+    if (isToday(date)) return "Today";
+    if (isYesterday(date)) return "Yesterday";
+    return format(date, "MMMM d, yyyy");
   };
 
-  const pinnedMsg = pinnedMessageId ? messages.find((m) => m.id === pinnedMessageId) : null;
+  const pinnedMsg = pinnedMessageId
+    ? messages.find((m) => m.id === pinnedMessageId)
+    : null;
 
   // ─── Selection Actions ───
   const handleDeleteSelected = async () => {
@@ -226,7 +262,7 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
         await MessagesAPI.deleteForMe(id);
         removeMessage(id);
       } catch (e) {
-        console.error('Delete failed for', id, e);
+        console.error("Delete failed for", id, e);
       }
     }
     clearSelectedMessages();
@@ -255,27 +291,33 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
     return (
       <div className="h-full w-full flex flex-col items-center justify-center gap-3 bg-[#0b141a]">
         <p className="text-red-400 text-sm text-center px-4">{error}</p>
-        <button onClick={() => window.location.reload()} className="text-[#00a884] text-sm underline mt-2">
+        <button
+          onClick={() => window.location.reload()}
+          className="text-[#00a884] text-sm underline mt-2"
+        >
           Retry
         </button>
       </div>
     );
   }
 
-  let lastDate = '';
+  let lastDate = "";
 
   return (
-    <div className="h-full flex bg-[#0b141a] relative overflow-hidden">
+    <div className="h-full flex bg-[#0b141a] relative isolate overflow-hidden">
       {/* Main chat area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
         <div
-          className="absolute inset-0 pointer-events-none opacity-[0.04]"
+          className="absolute inset-0 pointer-events-none z-0"
           style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundImage: `url("/bg4.jpg")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
           }}
         />
 
-        {activeConversation && <ChatHeader conversation={activeConversation} />}
+        {showHeader && activeConversation && <ChatHeader conversation={activeConversation} />}
 
         {/* Chat search bar */}
         <ChatSearchBar onQueryChange={setSearchQuery} />
@@ -293,7 +335,7 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
                   await MessagesAPI.unpin(conversationId);
                   setPinnedMessageId(null);
                 } catch (e) {
-                  console.error('Unpin failed', e);
+                  console.error("Unpin failed", e);
                 }
               }}
               className="text-[#8696a0] hover:text-[#e9edef] transition-colors flex-shrink-0"
@@ -347,7 +389,10 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
         )}
 
         {/* Messages area */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden px-2 md:px-4 py-3 space-y-1 custom-scrollbar relative z-10">
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto overflow-x-hidden px-2 md:px-4 py-3 space-y-1 custom-scrollbar relative z-10"
+        >
           {messages.length === 0 && (
             <div className="flex items-center justify-center h-full">
               <p className="text-[#8696a0] text-sm bg-[#182229] px-4 py-2 rounded-full">
@@ -385,17 +430,22 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
 
         {(() => {
           // Determine if current user can send in a group
-          const isGroup = activeConversation?.type === 'group';
-          const adminsOnly = isGroup && (activeConversation as any)?.send_permission === 'admins';
-          const myRole = (activeConversation as any)?.participants?.find((p: any) => p.user_id === user?.id)?.role;
-          const isAdmin = myRole === 'admin';
+          const isGroup = activeConversation?.type === "group";
+          const adminsOnly =
+            isGroup &&
+            (activeConversation as any)?.send_permission === "admins";
+          const myRole = (activeConversation as any)?.participants?.find(
+            (p: any) => p.user_id === user?.id,
+          )?.role;
+          const isAdmin = myRole === "admin";
           const cantPostInAdminsOnly = adminsOnly && !isAdmin;
 
           if (isBlocked) {
             return (
               <div className="bg-[#202c33] px-4 py-4 text-center border-t border-[#222d34]">
                 <p className="text-[#8696a0] text-sm">
-                  You cannot reply to this conversation. Unblock to send a message.
+                  You cannot reply to this conversation. Unblock to send a
+                  message.
                 </p>
               </div>
             );
@@ -415,8 +465,11 @@ export default function ChatWindow({ conversationId }: { conversationId: string 
 
       {/* Info panel (right side): group or contact depending on conversation type */}
       {isContactInfoOpen &&
-        (activeConversation?.type === 'group' ? (
-          <GroupInfoPanel groupId={conversationId} />
+        (activeConversation?.type === "group" ? (
+          <GroupInfoPanel
+            groupId={conversationId}
+            conversation={activeConversation}
+          />
         ) : (
           <ContactInfoPanel />
         ))}

@@ -12,7 +12,7 @@ const ChatTab = ({ teamConversationId, selectedTeam }: ChatTabProps) => {
   if (teamConversationId) {
     return (
       <div className="h-full w-full overflow-hidden">
-        <ChatWindow conversationId={teamConversationId} />
+        <ChatWindow conversationId={teamConversationId} showHeader={false} />
       </div>
     );
   }

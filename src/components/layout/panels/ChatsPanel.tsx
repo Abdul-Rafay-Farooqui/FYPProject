@@ -153,7 +153,7 @@ export default function ChatsPanel() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-2 pt-2 pb-1">
+      <div className="px-2 pt-2 pb-2">
         <div className="relative flex items-center bg-[#202c33] rounded-lg px-3 py-1.5 focus-within:bg-[#2a3942]">
           <Search className="w-4 h-4 text-[#8696a0] mr-3 flex-shrink-0" />
           <input

@@ -1,36 +1,50 @@
-'use client';
+"use client";
 
-import { Conversation } from '@/types';
-import { Video, Phone, Search, MoreVertical } from 'lucide-react';
-import { ConversationsAPI, BlocksAPI, CallsAPI } from '@/lib/api/endpoints';
-import { getSocket } from '@/lib/socket';
-import { useAuthStore } from '@/store/authStore';
-import { useCallStore } from '@/store/callStore';
-import { useUIStore } from '@/store/uiStore';
-import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Conversation } from "@/types";
+import { Video, Phone, Search, MoreVertical } from "lucide-react";
+import { ConversationsAPI, BlocksAPI, CallsAPI } from "@/lib/api/endpoints";
+import { getSocket } from "@/lib/socket";
+import { useAuthStore } from "@/store/authStore";
+import { useCallStore } from "@/store/callStore";
+import { useUIStore } from "@/store/uiStore";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
-  User, Search as SearchIcon, CheckSquare, BellOff, Bell,
-  Clock, XCircle, Flag, Ban, CheckCircle,
-  MessageSquareOff, Trash2,
-} from 'lucide-react';
+  User,
+  Search as SearchIcon,
+  CheckSquare,
+  BellOff,
+  Bell,
+  Clock,
+  XCircle,
+  Flag,
+  Ban,
+  CheckCircle,
+  MessageSquareOff,
+  Trash2,
+} from "lucide-react";
 
-export default function ChatHeader({ conversation }: { conversation: Conversation }) {
+export default function ChatHeader({
+  conversation,
+}: {
+  conversation: Conversation;
+}) {
   const otherParticipant = conversation.other_participant;
   const { user } = useAuthStore();
   const { setActiveCall, setOutgoingCall } = useCallStore();
-  const { setContactInfoOpen, setChatSearchOpen } = useUIStore();
+  const { isContactInfoOpen, setContactInfoOpen, setChatSearchOpen } =
+    useUIStore();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [iBlockedThem, setIBlockedThem] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [toastType, setToastType] = useState<"success" | "error">("success");
   const [typingUser, setTypingUser] = useState<string | null>(null);
   const [, forceRender] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+  const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast(msg);
     setToastType(type);
     setTimeout(() => setToast(null), 3000);
@@ -62,11 +76,15 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
         setTypingUser(null);
       }
     };
-    const onPresence = (data: { user_id: string; is_online: boolean; last_seen: string }) => {
+    const onPresence = (data: {
+      user_id: string;
+      is_online: boolean;
+      last_seen: string;
+    }) => {
       if (data.user_id === otherParticipant?.id) {
         otherParticipant.is_online = data.is_online;
-        otherParticipant.last_seen = new Date(data.last_seen);
-        forceRender(x => x + 1); 
+        otherParticipant.last_seen = data.last_seen;
+        forceRender((x) => x + 1);
       }
     };
 
@@ -79,15 +97,15 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
       }
     };
 
-    socket.on('typing', onTyping);
-    socket.on('typing:stop', onTypingStop);
-    socket.on('presence:update', onPresence);
-    socket.on('block:update', onBlockUpdate);
+    socket.on("typing", onTyping);
+    socket.on("typing:stop", onTypingStop);
+    socket.on("presence:update", onPresence);
+    socket.on("block:update", onBlockUpdate);
     return () => {
-      socket.off('typing', onTyping);
-      socket.off('typing:stop', onTypingStop);
-      socket.off('presence:update', onPresence);
-      socket.off('block:update', onBlockUpdate);
+      socket.off("typing", onTyping);
+      socket.off("typing:stop", onTypingStop);
+      socket.off("presence:update", onPresence);
+      socket.off("block:update", onBlockUpdate);
     };
   }, [conversation.id, user?.id, otherParticipant]);
 
@@ -98,7 +116,7 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
     return () => clearTimeout(timer);
   }, [typingUser]);
 
-  const initiateCall = async (type: 'voice' | 'video') => {
+  const initiateCall = async (type: "voice" | "video") => {
     if (!otherParticipant) return;
     try {
       const data = await CallsAPI.initiate({
@@ -108,8 +126,8 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
       });
       if (data) setOutgoingCall(data);
     } catch (e: any) {
-      console.error('Call error:', e);
-      showToast('Call failed', 'error');
+      console.error("Call error:", e);
+      showToast("Call failed", "error");
     }
   };
 
@@ -120,9 +138,9 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
       await ConversationsAPI.mute(conversation.id, newMuted);
       setIsMuted(newMuted);
       setIsMenuOpen(false);
-      showToast(newMuted ? 'Notifications muted' : 'Notifications unmuted');
+      showToast(newMuted ? "Notifications muted" : "Notifications unmuted");
     } catch (e: any) {
-      showToast('Failed to update', 'error');
+      showToast("Failed to update", "error");
     }
   };
 
@@ -131,7 +149,7 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
     try {
       if (iBlockedThem) {
         await BlocksAPI.unblock(otherParticipant.id);
-        showToast('User unblocked');
+        showToast("User unblocked");
         setIBlockedThem(false);
       } else {
         await BlocksAPI.block(otherParticipant.id);
@@ -140,7 +158,7 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
       }
       setIsMenuOpen(false);
     } catch (e: any) {
-      showToast('Action failed', 'error');
+      showToast("Action failed", "error");
     }
   };
 
@@ -151,7 +169,7 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
       setIsMenuOpen(false);
       showToast(`${otherParticipant.display_name} reported`);
     } catch (e: any) {
-      showToast('Report failed', 'error');
+      showToast("Report failed", "error");
     }
   };
 
@@ -160,9 +178,9 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
     try {
       await ConversationsAPI.clear(conversation.id);
       setIsMenuOpen(false);
-      showToast('Chat cleared');
+      showToast("Chat cleared");
     } catch (e: any) {
-      showToast('Clear failed', 'error');
+      showToast("Clear failed", "error");
     }
   };
 
@@ -171,132 +189,169 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
     try {
       await ConversationsAPI.hide(conversation.id);
       setIsMenuOpen(false);
-      window.location.href = '/';
+      window.location.href = "/";
     } catch (e: any) {
-      showToast('Delete failed', 'error');
+      showToast("Delete failed", "error");
     }
   };
 
   const getStatusText = () => {
-    if (typingUser) return 'typing...';
-    if (otherParticipant?.is_online) return 'online';
+    if (typingUser) return "typing...";
+    if (otherParticipant?.is_online) return "online";
     if (otherParticipant?.last_seen) {
       const d = new Date(otherParticipant.last_seen);
-      if (isNaN(d.getTime())) return 'last seen recently';
+      if (isNaN(d.getTime())) return "last seen recently";
       const now = new Date();
       const diffMs = now.getTime() - d.getTime();
       const diffMin = Math.floor(diffMs / 60000);
-      if (diffMin < 1) return 'last seen just now';
+      if (diffMin < 1) return "last seen just now";
       if (diffMin < 60) return `last seen ${diffMin} min ago`;
       const diffHr = Math.floor(diffMin / 60);
       if (diffHr < 24) return `last seen ${diffHr}h ago`;
       return `last seen ${d.toLocaleDateString()}`;
     }
-    return 'last seen recently';
+    return "last seen recently";
   };
 
   const menuItems = [
     {
       icon: <User className="w-4 h-4" />,
-      label: 'Contact info',
-      onClick: () => { setIsMenuOpen(false); setContactInfoOpen(true); },
+      label: "Contact info",
+      onClick: () => {
+        setIsMenuOpen(false);
+        setContactInfoOpen(true);
+      },
     },
     {
       icon: <SearchIcon className="w-4 h-4" />,
-      label: 'Search',
-      onClick: () => { setIsMenuOpen(false); setChatSearchOpen(true); },
+      label: "Search",
+      onClick: () => {
+        setIsMenuOpen(false);
+        setChatSearchOpen(true);
+      },
     },
     {
       icon: <CheckSquare className="w-4 h-4" />,
-      label: 'Select messages',
+      label: "Select messages",
       onClick: () => {
         setIsMenuOpen(false);
         useUIStore.getState().setSelectionMode(true);
       },
     },
     {
-      icon: isMuted ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />,
-      label: isMuted ? 'Unmute notifications' : 'Mute notifications',
+      icon: isMuted ? (
+        <Bell className="w-4 h-4" />
+      ) : (
+        <BellOff className="w-4 h-4" />
+      ),
+      label: isMuted ? "Unmute notifications" : "Mute notifications",
       onClick: handleMuteToggle,
     },
     {
       icon: <Clock className="w-4 h-4" />,
-      label: 'Disappearing messages',
-      onClick: () => { setIsMenuOpen(false); showToast('Disappearing messages coming soon'); },
+      label: "Disappearing messages",
+      onClick: () => {
+        setIsMenuOpen(false);
+        showToast("Disappearing messages coming soon");
+      },
     },
-    'divider' as const,
+    "divider" as const,
     {
       icon: <XCircle className="w-4 h-4" />,
-      label: 'Close chat',
-      onClick: () => { setIsMenuOpen(false); router.push('/'); },
+      label: "Close chat",
+      onClick: () => {
+        setIsMenuOpen(false);
+        router.push("/");
+      },
     },
     {
-      icon: iBlockedThem ? <CheckCircle className="w-4 h-4" /> : <Ban className="w-4 h-4" />,
-      label: iBlockedThem ? 'Unblock' : 'Block',
+      icon: iBlockedThem ? (
+        <CheckCircle className="w-4 h-4" />
+      ) : (
+        <Ban className="w-4 h-4" />
+      ),
+      label: iBlockedThem ? "Unblock" : "Block",
       onClick: handleBlock,
       danger: !iBlockedThem,
     },
     {
       icon: <MessageSquareOff className="w-4 h-4" />,
-      label: 'Clear chat',
+      label: "Clear chat",
       onClick: handleClearChat,
       danger: true,
     },
     {
       icon: <Trash2 className="w-4 h-4" />,
-      label: 'Delete chat',
+      label: "Delete chat",
       onClick: handleDeleteChat,
       danger: true,
     },
   ];
 
   return (
-    <div className="bg-[#202c33] px-4 py-2 flex items-center justify-between sticky top-0 z-20 shadow-md relative">
+    <div
+      className="bg-[#0B120D] px-4 py-2 flex items-center justify-between z-20 shadow-sm border-b border-[#222d34]"
+      style={{ position: "sticky", top: 0 }}
+    >
       <div
-        className="flex items-center gap-3 cursor-pointer hover:bg-[#2a3942] rounded-lg px-2 py-1 -ml-2 transition-colors"
-        onClick={() => setContactInfoOpen(true)}
+        className="flex items-center gap-3 cursor-pointer hover:bg-[#2a3942] rounded-2xl px-3 py-2 -ml-1 transition-all duration-200"
+        onClick={() => setContactInfoOpen(!isContactInfoOpen)}
       >
-        {conversation.type === 'group' ? (
+        {conversation.type === "group" ? (
           conversation.avatar_url ? (
-            <img src={conversation.avatar_url} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
+            <img
+              src={conversation.avatar_url}
+              alt="Avatar"
+              className="w-10 h-10 rounded-full object-cover ring-1 ring-[#222d34] shadow-sm"
+            />
           ) : (
-            <div className="w-10 h-10 bg-[#2a3942] rounded-full flex items-center justify-center">
-              <span className="text-[#e9edef] text-lg">{(conversation.name || 'G')[0].toUpperCase()}</span>
+            <div className="w-10 h-10 bg-[#2a3942] rounded-full flex items-center justify-center ring-1 ring-[#222d34] shadow-sm">
+              <span className="text-[#e9edef] text-lg">
+                {(conversation.name || "G")[0].toUpperCase()}
+              </span>
             </div>
           )
         ) : otherParticipant?.avatar_url ? (
-          <img src={otherParticipant.avatar_url} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
+          <img
+            src={otherParticipant.avatar_url}
+            alt="Avatar"
+            className="w-10 h-10 rounded-full object-cover ring-1 ring-[#222d34] shadow-sm"
+          />
         ) : (
-          <div className="w-10 h-10 bg-[#2a3942] rounded-full flex items-center justify-center">
-            <span className="text-[#e9edef] text-lg">{otherParticipant?.display_name?.[0]?.toUpperCase()}</span>
+          <div className="w-10 h-10 bg-[#2a3942] rounded-full flex items-center justify-center ring-1 ring-[#222d34] shadow-sm">
+            <span className="text-[#e9edef] text-lg">
+              {otherParticipant?.display_name?.[0]?.toUpperCase()}
+            </span>
           </div>
         )}
         <div>
-          <h3 className="text-[#e9edef] font-medium leading-tight">
-            {conversation.type === 'group'
-              ? conversation.name || 'Group'
+          <h3 className="text-[#e9edef] font-semibold leading-tight">
+            {conversation.type === "group"
+              ? conversation.name || "Group"
               : otherParticipant?.display_name}
           </h3>
-          <p className={`text-xs ${typingUser ? 'text-[#00a884]' : 'text-[#8696a0]'}`}>
-            {conversation.type === 'group'
-              ? conversation.send_permission === 'admins'
-                ? 'Admins only can send messages'
-                : 'Tap for group info'
+          <p
+            className={`text-[11px] ${typingUser ? "text-[#00a884]" : "text-[#8696a0]"}`}
+          >
+            {conversation.type === "group"
+              ? conversation.send_permission === "admins"
+                ? "Admins only can send messages"
+                : "Tap for group info"
               : getStatusText()}
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-6 text-[#aebac1]">
-        {conversation.type !== 'group' && (
+      <div className="flex items-center gap-5 text-[#aebac1]">
+        {conversation.type !== "group" && (
           <>
             <Video
               className="w-5 h-5 cursor-pointer hover:text-[#e9edef] transition-colors"
-              onClick={() => initiateCall('video')}
+              onClick={() => initiateCall("video")}
             />
             <Phone
               className="w-5 h-5 cursor-pointer hover:text-[#e9edef] transition-colors"
-              onClick={() => initiateCall('voice')}
+              onClick={() => initiateCall("voice")}
             />
             <div className="w-px h-6 bg-[#222d34] mx-1"></div>
           </>
@@ -315,13 +370,16 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
 
           {isMenuOpen && (
             <>
-              <div className="fixed inset-0 z-40" onClick={() => setIsMenuOpen(false)} />
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setIsMenuOpen(false)}
+              />
               <div
                 ref={menuRef}
-                className="absolute right-0 mt-2 w-56 bg-[#233138] shadow-2xl rounded-md py-1.5 z-50 fade-in-scale"
+                className="absolute right-0 mt-2 w-56 bg-[#233138] shadow-2xl rounded-2xl py-1.5 z-50 fade-in-scale overflow-hidden"
               >
                 {menuItems.map((item, i) => {
-                  if (item === 'divider') {
+                  if (item === "divider") {
                     return <div key={i} className="h-px bg-[#222d34] my-1" />;
                   }
                   const it = item as {
@@ -334,10 +392,12 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
                     <button
                       key={i}
                       onClick={it.onClick}
-                      className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-[#111b21] transition-colors
-                        ${it.danger ? 'text-red-400' : 'text-[#e9edef]'}`}
+                      className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-[#111b21] transition-colors duration-150
+                        ${it.danger ? "text-red-400" : "text-[#e9edef]"}`}
                     >
-                      <span className={it.danger ? '' : 'text-[#8696a0]'}>{it.icon}</span>
+                      <span className={it.danger ? "" : "text-[#8696a0]"}>
+                        {it.icon}
+                      </span>
                       {it.label}
                     </button>
                   );
@@ -350,8 +410,9 @@ export default function ChatHeader({ conversation }: { conversation: Conversatio
 
       {/* Toast notification */}
       {toast && (
-        <div className={`fixed top-4 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-lg shadow-2xl z-[200] whitespace-nowrap text-sm font-medium
-          ${toastType === 'error' ? 'bg-red-500/90 text-white' : 'bg-[#00a884] text-[#111b21]'}`}
+        <div
+          className={`fixed top-4 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-xl shadow-2xl z-[200] whitespace-nowrap text-sm font-medium
+          ${toastType === "error" ? "bg-red-500/90 text-white" : "bg-[#00a884] text-[#111b21]"}`}
         >
           {toast}
         </div>

@@ -1,14 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, ChevronUp, ChevronDown, Search } from 'lucide-react';
-import { useUIStore } from '@/store/uiStore';
-import { useChatStore } from '@/store/chatStore';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { X, ChevronUp, ChevronDown, Search } from "lucide-react";
+import { useUIStore } from "@/store/uiStore";
+import { useChatStore } from "@/store/chatStore";
 
-export default function ChatSearchBar({ onQueryChange }: { onQueryChange?: (q: string) => void }) {
+export default function ChatSearchBar({
+  onQueryChange,
+}: {
+  onQueryChange?: (q: string) => void;
+}) {
   const { isChatSearchOpen, setChatSearchOpen } = useUIStore();
   const { messages } = useChatStore();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [matches, setMatches] = useState<number[]>([]);
   const [currentMatch, setCurrentMatch] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -16,12 +20,12 @@ export default function ChatSearchBar({ onQueryChange }: { onQueryChange?: (q: s
   useEffect(() => {
     if (isChatSearchOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
-      setQuery('');
+      setQuery("");
       setMatches([]);
       setCurrentMatch(0);
-      onQueryChange?.('');
+      onQueryChange?.("");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isChatSearchOpen]);
 
   const doSearch = useCallback(
@@ -29,7 +33,7 @@ export default function ChatSearchBar({ onQueryChange }: { onQueryChange?: (q: s
       if (!q.trim()) {
         setMatches([]);
         setCurrentMatch(0);
-        onQueryChange?.('');
+        onQueryChange?.("");
         return;
       }
       const lower = q.toLowerCase();
@@ -49,7 +53,7 @@ export default function ChatSearchBar({ onQueryChange }: { onQueryChange?: (q: s
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [messages]
+    [messages],
   );
 
   useEffect(() => {
@@ -60,10 +64,10 @@ export default function ChatSearchBar({ onQueryChange }: { onQueryChange?: (q: s
   const scrollToMessage = (msgIndex: number) => {
     const msgEl = document.querySelector(`[data-msg-index="${msgIndex}"]`);
     if (msgEl) {
-      msgEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      msgEl.scrollIntoView({ behavior: "smooth", block: "center" });
       // Flash highlight
-      msgEl.classList.add('search-flash');
-      setTimeout(() => msgEl.classList.remove('search-flash'), 1500);
+      msgEl.classList.add("search-flash");
+      setTimeout(() => msgEl.classList.remove("search-flash"), 1500);
     }
   };
 
@@ -83,16 +87,16 @@ export default function ChatSearchBar({ onQueryChange }: { onQueryChange?: (q: s
 
   const close = () => {
     setChatSearchOpen(false);
-    setQuery('');
+    setQuery("");
     setMatches([]);
-    onQueryChange?.('');
+    onQueryChange?.("");
   };
 
   if (!isChatSearchOpen) return null;
 
   return (
-    <div className="bg-[#202c33] px-4 py-2 flex items-center gap-3 border-b border-[#222d34] slide-down relative z-10">
-      <div className="flex-1 flex items-center bg-[#2a3942] rounded-lg px-3 py-1.5">
+    <div className="bg-[#202c33] px-4 py-2 flex items-center gap-3 border-b border-[#222d34] slide-down relative z-10 shadow-sm">
+      <div className="flex-1 flex items-center bg-[#2a3942] rounded-2xl px-3 py-2 border border-[#222d34]">
         <Search className="w-4 h-4 text-[#8696a0] mr-2 flex-shrink-0" />
         <input
           ref={inputRef}
@@ -100,8 +104,8 @@ export default function ChatSearchBar({ onQueryChange }: { onQueryChange?: (q: s
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') goDown();
-            if (e.key === 'Escape') close();
+            if (e.key === "Enter") goDown();
+            if (e.key === "Escape") close();
           }}
           placeholder="Search messages..."
           className="bg-transparent text-[#e9edef] text-sm w-full outline-none placeholder:text-[#8696a0]"
@@ -110,18 +114,31 @@ export default function ChatSearchBar({ onQueryChange }: { onQueryChange?: (q: s
 
       {query && (
         <span className="text-[#8696a0] text-xs whitespace-nowrap min-w-[60px] text-center">
-          {matches.length > 0 ? `${currentMatch + 1} of ${matches.length}` : 'No results'}
+          {matches.length > 0
+            ? `${currentMatch + 1} of ${matches.length}`
+            : "No results"}
         </span>
       )}
 
       <div className="flex items-center gap-1 text-[#aebac1]">
-        <button onClick={goUp} className="p-1 hover:text-[#e9edef] transition-colors disabled:opacity-30" disabled={matches.length === 0}>
+        <button
+          onClick={goUp}
+          className="p-1.5 rounded-lg hover:bg-[#2a3942] hover:text-[#e9edef] transition-colors disabled:opacity-30"
+          disabled={matches.length === 0}
+        >
           <ChevronUp className="w-5 h-5" />
         </button>
-        <button onClick={goDown} className="p-1 hover:text-[#e9edef] transition-colors disabled:opacity-30" disabled={matches.length === 0}>
+        <button
+          onClick={goDown}
+          className="p-1.5 rounded-lg hover:bg-[#2a3942] hover:text-[#e9edef] transition-colors disabled:opacity-30"
+          disabled={matches.length === 0}
+        >
           <ChevronDown className="w-5 h-5" />
         </button>
-        <button onClick={close} className="p-1 hover:text-[#e9edef] transition-colors ml-1">
+        <button
+          onClick={close}
+          className="p-1.5 rounded-lg hover:bg-[#2a3942] hover:text-[#e9edef] transition-colors ml-1"
+        >
           <X className="w-5 h-5" />
         </button>
       </div>

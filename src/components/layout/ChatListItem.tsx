@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { Conversation } from '@/types';
-import { useChatStore } from '@/store/chatStore';
-import { format, isToday, isYesterday, isThisWeek } from 'date-fns';
-import { Pin, BellOff, Users, Volume2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { ConversationsAPI } from '@/lib/api/endpoints';
-import { useAuthStore } from '@/store/authStore';
-import { useState } from 'react';
-import ChatListContextMenu from './ChatListContextMenu';
+import { Conversation } from "@/types";
+import { useChatStore } from "@/store/chatStore";
+import { format, isToday, isYesterday, isThisWeek } from "date-fns";
+import { Pin, BellOff, Users, Volume2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ConversationsAPI } from "@/lib/api/endpoints";
+import { useAuthStore } from "@/store/authStore";
+import { useState } from "react";
+import ChatListContextMenu from "./ChatListContextMenu";
 
 type ExtendedConversation = Conversation & {
   _unread_count?: number;
@@ -27,7 +27,10 @@ export default function ChatListItem({
   const { user } = useAuthStore();
   const router = useRouter();
   const isActive = activeConversation?.id === conversation.id;
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
 
   const handleClick = async () => {
     setActiveConversation(conversation);
@@ -49,26 +52,28 @@ export default function ChatListItem({
     setContextMenu({ x, y });
   };
 
-  const isGroup = conversation.type === 'group';
+  const isGroup = conversation.type === "group";
   const otherParticipant = conversation.other_participant;
 
   // Display values (group or 1on1)
   const displayName = isGroup
-    ? conversation.name || 'Group'
-    : otherParticipant?.display_name || 'Unknown User';
-  const avatarUrl = isGroup ? conversation.avatar_url : otherParticipant?.avatar_url;
-  const avatarInitial = displayName?.[0]?.toUpperCase() || '?';
+    ? conversation.name || "Group"
+    : otherParticipant?.display_name || "Unknown User";
+  const avatarUrl = isGroup
+    ? conversation.avatar_url
+    : otherParticipant?.avatar_url;
+  const avatarInitial = displayName?.[0]?.toUpperCase() || "?";
 
   // Format timestamp like WhatsApp
   const formatTime = (dateStr: string | null | undefined): string => {
-    if (!dateStr) return '';
+    if (!dateStr) return "";
     const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return '';
+    if (isNaN(date.getTime())) return "";
 
-    if (isToday(date)) return format(date, 'HH:mm');
-    if (isYesterday(date)) return 'Yesterday';
-    if (isThisWeek(date)) return format(date, 'EEEE');
-    return format(date, 'dd/MM/yyyy');
+    if (isToday(date)) return format(date, "HH:mm");
+    if (isYesterday(date)) return "Yesterday";
+    if (isThisWeek(date)) return format(date, "EEEE");
+    return format(date, "dd/MM/yyyy");
   };
 
   const lastMessageTime = formatTime(conversation.last_message_at);
@@ -81,15 +86,19 @@ export default function ChatListItem({
       <div
         onClick={handleClick}
         onContextMenu={handleContextMenu}
-        className={`flex items-center px-3 py-3 cursor-pointer transition-colors border-b border-[#222d34] ${
-          isActive ? 'bg-[#2a3942]' : 'hover:bg-[#202c33]'
+        className={`flex items-center px-3 py-3 cursor-pointer transition-all duration-200 border-b border-[#222d34] ${
+          isActive ? "bg-[#2a3942] shadow-sm" : "hover:bg-[#202c33]"
         }`}
       >
         <div className="relative flex-shrink-0">
           {avatarUrl ? (
-            <img src={avatarUrl} alt="Avatar" className="w-[49px] h-[49px] rounded-full object-cover" />
+            <img
+              src={avatarUrl}
+              alt="Avatar"
+              className="w-[49px] h-[49px] rounded-full object-cover ring-1 ring-[#222d34] shadow-sm"
+            />
           ) : (
-            <div className="w-[49px] h-[49px] bg-[#2a3942] rounded-full flex items-center justify-center">
+            <div className="w-[49px] h-[49px] bg-[#2a3942] rounded-full flex items-center justify-center ring-1 ring-[#222d34] shadow-sm">
               {isGroup ? (
                 <Users className="w-6 h-6 text-[#8696a0]" />
               ) : (
@@ -103,24 +112,27 @@ export default function ChatListItem({
         </div>
 
         <div className="ml-3 flex-1 min-w-0">
-          <div className="flex justify-between items-baseline">
-            <h3 className="text-[#e9edef] font-medium text-[16px] truncate leading-tight">
+          <div className="flex justify-between items-baseline gap-2">
+            <h3 className="text-[#e9edef] font-semibold text-[16px] truncate leading-tight">
               {displayName}
             </h3>
-            <span className={`text-xs ml-2 whitespace-nowrap ${unreadCount > 0 ? 'text-[#00a884]' : 'text-[#8696a0]'}`}>
+            <span
+              className={`text-xs ml-2 whitespace-nowrap ${unreadCount > 0 ? "text-[#00a884]" : "text-[#8696a0]"}`}
+            >
               {lastMessageTime}
             </span>
           </div>
-          <div className="flex justify-between items-center mt-0.5">
+          <div className="flex justify-between items-center mt-0.5 gap-2">
             <p className="text-[#8696a0] text-[13px] truncate flex-1 leading-tight">
-              {conversation.last_message_preview || (isGroup ? 'Group created' : 'No messages yet')}
+              {conversation.last_message_preview ||
+                (isGroup ? "Group created" : "No messages yet")}
             </p>
             <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
               {isMuted && <BellOff className="w-3.5 h-3.5 text-[#8696a0]" />}
               {isPinned && <Pin className="w-3.5 h-3.5 text-[#8696a0]" />}
               {unreadCount > 0 && (
-                <div className="bg-[#00a884] text-[#111b21] text-[11px] font-bold min-w-[20px] h-[20px] rounded-full flex items-center justify-center px-1">
-                  {unreadCount > 99 ? '99+' : unreadCount}
+                <div className="bg-[#00a884] text-[#111b21] text-[11px] font-bold min-w-[20px] h-[20px] rounded-full flex items-center justify-center px-1 shadow-sm">
+                  {unreadCount > 99 ? "99+" : unreadCount}
                 </div>
               )}
             </div>
