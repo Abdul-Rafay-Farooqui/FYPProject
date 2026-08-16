@@ -198,36 +198,53 @@ export default function CallModal() {
     if (activeCall && user) {
       timerInterval = setInterval(() => setCallDuration((d) => d + 1), 1000);
 
-      navigator.mediaDevices
-        .getUserMedia({ video: activeCall.type === "video", audio: true })
-        .then((stream) => {
-          if (!mounted) {
-            stream.getTracks().forEach((track) => track.stop());
-            return;
-          }
+      const isVideo = activeCall.type === "video";
 
+      // Try to get media with graceful fallbacks:
+      // 1. video + audio  2. audio only  3. no media (proceed anyway)
+      const acquireStream = async (): Promise<MediaStream | null> => {
+        if (isVideo) {
+          try {
+            return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          } catch {
+            // camera unavailable or denied — fall through to audio only
+          }
+        }
+        try {
+          return await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+        } catch {
+          // mic also unavailable — proceed with no local media
+          return null;
+        }
+      };
+
+      acquireStream().then((stream) => {
+        if (!mounted) {
+          stream?.getTracks().forEach((track) => track.stop());
+          return;
+        }
+
+        if (stream) {
           streamRef.current = stream;
-          setLocalStreamReady(true);
+          if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+        }
+        // Mark ready regardless — even with no stream we can receive remote media
+        setLocalStreamReady(true);
 
-          if (localVideoRef.current) {
-            localVideoRef.current.srcObject = stream;
-          }
+        createPeerConnection();
 
-          createPeerConnection();
-
-          if (pendingOfferRef.current) {
-            const pendingOffer = pendingOfferRef.current;
-            pendingOfferRef.current = null;
-            handleOffer(pendingOffer).catch((err) => {
-              console.error("Call answer error:", err);
-            });
-          } else if (user.id === activeCall.caller_id) {
-            sendOffer().catch((err) => {
-              console.error("Call offer error:", err);
-            });
-          }
-        })
-        .catch((err) => console.error("Media device error:", err));
+        if (pendingOfferRef.current) {
+          const pendingOffer = pendingOfferRef.current;
+          pendingOfferRef.current = null;
+          handleOffer(pendingOffer).catch((err) => {
+            console.error("Call answer error:", err);
+          });
+        } else if (user.id === activeCall.caller_id) {
+          sendOffer().catch((err) => {
+            console.error("Call offer error:", err);
+          });
+        }
+      });
     }
     return () => {
       mounted = false;
@@ -408,10 +425,10 @@ export default function CallModal() {
                 <Phone className="w-24 h-24 text-[#00a884]" />
               )}
             </div>
-            {!streamRef.current ? (
-              <p className="text-[#8696a0]">Requesting media access...</p>
+            {!localStreamReady ? (
+              <p className="text-[#8696a0]">Connecting...</p>
             ) : !remoteStream ? (
-              <p className="text-[#8696a0]">Connecting call...</p>
+              <p className="text-[#8696a0]">Waiting for other party...</p>
             ) : null}
           </div>
         )}
