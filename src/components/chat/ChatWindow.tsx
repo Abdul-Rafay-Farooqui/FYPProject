@@ -76,10 +76,14 @@ export default function ChatWindow({
     isBlockedRef.current = isBlocked;
   }, [isBlocked]);
 
-  const scrollToBottom = useCallback(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+  const scrollToBottom = useCallback((smooth = false) => {
+    if (!scrollRef.current) return;
+    // Defer until after paint so scrollHeight reflects rendered content
+    requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    });
   }, []);
 
   // Ref to hold the latest load function (avoids stale closures)
@@ -232,6 +236,10 @@ export default function ChatWindow({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, user?.id]);
+
+  useEffect(() => {
+    if (!loading) scrollToBottom();
+  }, [loading, scrollToBottom]);
 
   useEffect(() => {
     scrollToBottom();
