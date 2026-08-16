@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { X, Phone } from "lucide-react";
 
 interface JitsiLiveClassRoomProps {
@@ -26,170 +26,9 @@ export default function JitsiLiveClassRoom({
   onRefresh,
   onEndClass,
 }: JitsiLiveClassRoomProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const jitsiApiRef = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [useIframe, setUseIframe] = useState(false);
-  const [hasLeft, setHasLeft] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    if (!open || !liveClass || hasLeft || isInitialized) return;
-
-    // Load Jitsi script if needed
-    const loadJitsiScript = () => {
-      return new Promise<void>((resolve, reject) => {
-        if (window.JitsiMeetExternalAPI) {
-          resolve();
-          return;
-        }
-
-        const script = document.createElement("script");
-        script.src = "https://meet.jit.si/external_api.js";
-        script.async = true;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error("Failed to load Jitsi script"));
-        document.body.appendChild(script);
-      });
-    };
-
-    const initJitsi = async () => {
-      try {
-        await loadJitsiScript();
-
-        if (!containerRef.current) {
-          console.log(
-            "[Jitsi-LiveClass] Container not available, using iframe",
-          );
-          setUseIframe(true);
-          setIsLoading(false);
-          setIsInitialized(true);
-          return;
-        }
-
-        console.log("[Jitsi-LiveClass] Initializing External API");
-        const domain = "meet.jit.si";
-        const options = {
-          roomName: liveClass.meeting_id,
-          width: "100%",
-          height: "100%",
-          parentNode: containerRef.current,
-          configOverwrite: {
-            prejoinPageEnabled: false,
-            prejoinConfig: {
-              enabled: false,
-            },
-            startWithAudioMuted: false,
-            startWithVideoMuted: false,
-            requireDisplayName: false,
-            disableProfile: true,
-            enableWelcomePage: false,
-            enableClosePage: false,
-            disableDeepLinking: true,
-          },
-          interfaceConfigOverwrite: {
-            DISABLE_JOIN_LEAVE_NOTIFICATIONS: false,
-            SHOW_JITSI_WATERMARK: false,
-            MOBILE_APP_PROMO: false,
-            HIDE_INVITE_MORE_HEADER: true,
-          },
-          userInfo: {
-            displayName: currentUserName || "User",
-            email: "",
-          },
-        };
-
-        const api = new window.JitsiMeetExternalAPI(domain, options);
-        jitsiApiRef.current = api;
-        setIsInitialized(true);
-        console.log("[Jitsi-LiveClass] External API initialized successfully");
-
-        // Hide loading when video conference joined
-        api.addEventListener("videoConferenceJoined", () => {
-          console.log("[Jitsi-LiveClass] User joined conference");
-          setIsLoading(false);
-        });
-
-        // Hide loading after timeout as fallback
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 5000);
-
-        // Handle when user leaves the meeting
-        api.addEventListener("readyToClose", async () => {
-          console.log("[Jitsi-LiveClass] User left the meeting");
-          setHasLeft(true);
-
-          // End the class if teacher
-          if (isTeacher && onEndClass && liveClass?.id) {
-            try {
-              await onEndClass(liveClass.id);
-            } catch (error) {
-              console.error("[Jitsi-LiveClass] Failed to end class:", error);
-            }
-          }
-
-          // Refresh class list
-          await onRefresh?.();
-
-          // Close the meeting room
-          onClose();
-        });
-
-        // Handle errors
-        api.addEventListener("errorOccurred", (error: any) => {
-          console.error("[Jitsi-LiveClass] Error:", error);
-        });
-      } catch (error) {
-        console.error(
-          "[Jitsi-LiveClass] Failed to initialize External API, falling back to iframe:",
-          error,
-        );
-        setUseIframe(true);
-        setIsLoading(false);
-        setIsInitialized(true);
-      }
-    };
-
-    initJitsi();
-
-    return () => {
-      if (jitsiApiRef.current) {
-        try {
-          jitsiApiRef.current.dispose();
-        } catch (e) {
-          console.warn("[Jitsi-LiveClass] Error disposing API:", e);
-        }
-        jitsiApiRef.current = null;
-      }
-    };
-  }, [
-    open,
-    liveClass,
-    currentUserName,
-    hasLeft,
-    isInitialized,
-    onClose,
-    onRefresh,
-    onEndClass,
-    isTeacher,
-  ]);
 
   const handleManualClose = async () => {
-    setHasLeft(true);
-    setIsInitialized(false);
-
-    // Dispose Jitsi API
-    if (jitsiApiRef.current) {
-      try {
-        jitsiApiRef.current.dispose();
-      } catch (e) {
-        console.warn("[Jitsi-LiveClass] Error disposing API:", e);
-      }
-      jitsiApiRef.current = null;
-    }
-
-    // End the class if teacher
     if (isTeacher && onEndClass && liveClass?.id) {
       try {
         await onEndClass(liveClass.id);
@@ -197,19 +36,14 @@ export default function JitsiLiveClassRoom({
         console.error("[Jitsi-LiveClass] Failed to end class:", error);
       }
     }
-
-    // Refresh class list
     await onRefresh?.();
-
-    // Close the meeting room
     onClose();
   };
 
-  const roomUrl = `https://meet.jit.si/${liveClass?.meeting_id || "test"}#config.prejoinPageEnabled=false&config.requireDisplayName=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false&userInfo.displayName="${encodeURIComponent(
-    currentUserName || "User",
-  )}"&userInfo.email=""`;
-
   if (!open) return null;
+
+  const displayName = encodeURIComponent(currentUserName || "User");
+  const roomUrl = `https://meet.jit.si/${liveClass?.meeting_id || "class"}#userInfo.displayName="${displayName}"&config.prejoinPageEnabled=false&config.requireDisplayName=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false&config.disableDeepLinking=true&interfaceConfig.SHOW_JITSI_WATERMARK=false&interfaceConfig.MOBILE_APP_PROMO=false`;
 
   return (
     <div className="fixed inset-0 z-[100] bg-[#0b141a] flex flex-col">
@@ -236,38 +70,29 @@ export default function JitsiLiveClassRoom({
         </div>
       </div>
 
-      {/* Jitsi Container */}
-      {useIframe ? (
-        <iframe
-          src={roomUrl}
-          allow="camera; microphone; display-capture"
-          className="w-full h-full"
-          style={{
-            border: "none",
-            borderRadius: 0,
-          }}
-        />
-      ) : (
-        <div
-          ref={containerRef}
-          className="w-full h-full"
-          style={{ backgroundColor: "#0b141a" }}
-        />
-      )}
-
       {/* Loading Overlay */}
       {isLoading && (
-        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div className="absolute inset-0 bg-[#0b141a] flex items-center justify-center z-10 pointer-events-none">
           <div className="flex flex-col items-center gap-4">
             <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-            <p className="text-white text-sm">Joining meeting...</p>
+            <p className="text-white text-sm">Joining class...</p>
           </div>
         </div>
       )}
 
+      {/* Jitsi iframe — direct embed, works on all domains */}
+      <iframe
+        src={roomUrl}
+        allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-write; speaker-selection"
+        allowFullScreen
+        className="w-full border-none"
+        style={{ marginTop: 60, height: 'calc(100% - 60px)' }}
+        onLoad={() => setIsLoading(false)}
+      />
+
       {/* Footer Controls */}
-      <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-center gap-4">
-        {isTeacher && (
+      {isTeacher && (
+        <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-center">
           <button
             onClick={handleManualClose}
             className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors"
@@ -275,8 +100,8 @@ export default function JitsiLiveClassRoom({
             <Phone className="w-5 h-5" />
             End Class
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
