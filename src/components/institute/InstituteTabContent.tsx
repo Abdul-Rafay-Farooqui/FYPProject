@@ -454,6 +454,8 @@ export default function InstituteTabContent({
           currentUserId={currentUserId}
           classBatchSections={instituteData.classBatchSections}
           subjects={instituteData.subjects}
+          teachers={instituteData.teachers}
+          subjectAssignments={instituteData.subjectAssignments}
           onRefresh={onRefresh}
         />
       );

@@ -11,6 +11,8 @@ export default function SchedulesTab({
   currentUserId,
   classBatchSections,
   subjects,
+  teachers,
+  subjectAssignments,
   onRefresh,
 }: any) {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -18,7 +20,7 @@ export default function SchedulesTab({
   const handleAddSchedule = async (data: any) => {
     await InstituteAPI.createSchedule({
       ...data,
-      teacher_id: currentUserId,
+      teacher_id: data.teacher_id || currentUserId,
     });
     onRefresh();
   };
@@ -96,7 +98,10 @@ export default function SchedulesTab({
                         )}
                         {schedule.class_batch_section && (
                           <p className="text-[#8696a0] text-xs mt-1">
-                            {schedule.class_batch_section.class?.name} - {schedule.class_batch_section.batch?.name} - {schedule.class_batch_section.section?.name}
+                            {[
+                              schedule.class_batch_section.batch?.name,
+                              schedule.class_batch_section.section?.name,
+                            ].filter(Boolean).join(' · ')}
                           </p>
                         )}
                       </div>
@@ -126,6 +131,8 @@ export default function SchedulesTab({
         onSubmit={handleAddSchedule}
         classBatchSections={classBatchSections}
         subjects={subjects}
+        teachers={teachers}
+        subjectAssignments={subjectAssignments}
         currentUserId={currentUserId}
       />
     </div>

@@ -235,7 +235,7 @@ export default function AssignCoursesTab({ instituteId, onRefresh }: AssignCours
                   <option value="">Select a class</option>
                   {classBatchSections.map((cbs) => (
                     <option key={cbs.id} value={cbs.id}>
-                      {cbs.class?.name || "N/A"} - {cbs.batch?.name || "N/A"} - {cbs.section?.name || "N/A"}
+                      {[cbs.batch?.name, cbs.section?.name].filter(Boolean).join(' · ')}
                     </option>
                   ))}
                 </select>

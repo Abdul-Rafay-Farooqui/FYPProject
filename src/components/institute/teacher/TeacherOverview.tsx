@@ -35,7 +35,24 @@ export default function TeacherOverview({ instituteId }: TeacherOverviewProps) {
     return <div className="text-[#8696a0]">No data available</div>;
   }
 
-  const { stats, upcomingClasses, recentSubmissions } = dashboard;
+  const { stats, upcomingClasses, recentSubmissions, weeklySchedules } = dashboard;
+
+  const daysOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+  const formatTime = (time: string) => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':').map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return time;
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  };
+
+  const groupedSchedules = weeklySchedules?.reduce((acc: any, s: any) => {
+    if (!acc[s.day_of_week]) acc[s.day_of_week] = [];
+    acc[s.day_of_week].push(s);
+    return acc;
+  }, {}) ?? {};
 
   return (
     <div className="space-y-6">
@@ -149,6 +166,41 @@ export default function TeacherOverview({ instituteId }: TeacherOverviewProps) {
           )}
         </div>
       </div>
+
+      {/* Weekly Schedule */}
+      {weeklySchedules && weeklySchedules.length > 0 && (
+        <div className="bg-[#111b21] rounded-xl border border-[#222d34] p-6">
+          <h3 className="text-[#e9edef] text-lg font-semibold mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-[#00a884]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            Weekly Schedule
+          </h3>
+          <div className="space-y-3">
+            {daysOrder.filter(day => groupedSchedules[day]?.length > 0).map((day) => (
+              <div key={day}>
+                <p className="text-[#8696a0] text-xs font-semibold uppercase tracking-wider mb-1">{day}</p>
+                <div className="space-y-1">
+                  {groupedSchedules[day].map((s: any) => (
+                    <div key={s.id} className="flex items-center gap-3 p-2 bg-[#0b141a] rounded-lg border border-[#222d34]">
+                      <span className="text-[#00a884] text-xs font-medium whitespace-nowrap">
+                        {formatTime(s.start_time)} – {formatTime(s.end_time)}
+                      </span>
+                      <span className="text-[#e9edef] text-sm flex-1">{s.subject?.name || 'No subject'}</span>
+                      {s.class_batch_section && (
+                        <span className="text-[#8696a0] text-xs">
+                          {[
+                            s.class_batch_section.batch?.name,
+                            s.class_batch_section.section?.name,
+                          ].filter(Boolean).join(' · ')}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quick Actions */}
       <div className="bg-[#111b21] rounded-xl border border-[#222d34] p-4 md:p-6">

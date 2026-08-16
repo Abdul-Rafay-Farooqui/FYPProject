@@ -37,6 +37,15 @@ export default function TeacherCourseOverview({ courseId, instituteId }: Teacher
     return <div className="text-[#8696a0]">No data available</div>;
   }
 
+  const formatTime = (time: string) => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':').map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return time;
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+  };
+
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
@@ -73,20 +82,33 @@ export default function TeacherCourseOverview({ courseId, instituteId }: Teacher
 
       {/* Class Schedule */}
       <div className="bg-[#111b21] rounded-xl border border-[#222d34] p-6">
-        <h3 className="text-[#e9edef] text-lg font-semibold mb-4">Class Schedule</h3>
+        <h3 className="text-[#e9edef] text-lg font-semibold mb-4 flex items-center gap-2">
+          <svg className="w-5 h-5 text-[#00a884]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          Class Schedule
+        </h3>
         {overview.schedules && overview.schedules.length > 0 ? (
           <div className="space-y-2">
             {overview.schedules.map((schedule: any) => (
-              <div key={schedule.id} className="flex items-center justify-between p-3 bg-[#0b141a] rounded-lg">
-                <div>
-                  <p className="text-[#e9edef] font-medium">{schedule.day_of_week}</p>
-                  <p className="text-[#8696a0] text-sm">{schedule.start_time} - {schedule.end_time}</p>
+              <div key={schedule.id} className="flex items-center justify-between p-3 bg-[#0b141a] rounded-lg border border-[#222d34]">
+                <div className="flex items-center gap-4">
+                  <span className="text-[#00a884] font-semibold text-sm w-24 shrink-0">{schedule.day_of_week}</span>
+                  <span className="text-[#e9edef] text-sm">
+                    {formatTime(schedule.start_time)} – {formatTime(schedule.end_time)}
+                  </span>
                 </div>
+                {schedule.class_batch_section && (
+                  <span className="text-[#8696a0] text-xs text-right">
+                    {[
+                      schedule.class_batch_section.batch?.name,
+                      schedule.class_batch_section.section?.name,
+                    ].filter(Boolean).join(' · ')}
+                  </span>
+                )}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-[#8696a0] text-sm">No schedule set</p>
+          <p className="text-[#8696a0] text-sm">No schedule set for this subject</p>
         )}
       </div>
 

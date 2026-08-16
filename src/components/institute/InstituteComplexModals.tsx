@@ -134,7 +134,7 @@ export function AddHomeworkModal({
               <option value="">Select class</option>
               {classBatchSections.map((cbs: any) => (
                 <option key={cbs.id} value={cbs.id}>
-                  {cbs.class?.name} - {cbs.batch?.name} - {cbs.section?.name}
+                  {[cbs.batch?.name, cbs.section?.name].filter(Boolean).join(' · ')}
                 </option>
               ))}
             </select>
@@ -196,9 +196,12 @@ interface AddScheduleModalProps extends ModalProps {
     day_of_week: string;
     start_time: string;
     end_time: string;
+    teacher_id: string;
   }) => Promise<void>;
   classBatchSections: any[];
   subjects: any[];
+  teachers?: any[];
+  subjectAssignments?: any[];
   currentUserId: string;
 }
 
@@ -208,15 +211,31 @@ export function AddScheduleModal({
   onSubmit,
   classBatchSections,
   subjects,
+  teachers,
+  subjectAssignments,
   currentUserId,
 }: AddScheduleModalProps) {
   const [cbsId, setCbsId] = useState("");
   const [subjectId, setSubjectId] = useState("");
+  const [teacherId, setTeacherId] = useState("");
   const [dayOfWeek, setDayOfWeek] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleSubjectChange = (selectedSubjectId: string) => {
+    setSubjectId(selectedSubjectId);
+    // Auto-populate teacher from subject assignment
+    if (selectedSubjectId && subjectAssignments) {
+      const assignment = subjectAssignments.find(
+        (a: any) => a.subject_id === selectedSubjectId
+      );
+      if (assignment) {
+        setTeacherId(assignment.teacher_id);
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -233,9 +252,11 @@ export function AddScheduleModal({
         day_of_week: dayOfWeek,
         start_time: startTime,
         end_time: endTime,
+        teacher_id: teacherId || currentUserId,
       });
       setCbsId("");
       setSubjectId("");
+      setTeacherId("");
       setDayOfWeek("");
       setStartTime("");
       setEndTime("");
@@ -278,6 +299,26 @@ export function AddScheduleModal({
         ) : (
           <form onSubmit={handleSubmit}>
           <div className="mb-4">
+            <label className="block text-[#8696a0] text-sm mb-2">
+              Teacher
+              {teacherId && subjectId && subjectAssignments?.find((a: any) => a.subject_id === subjectId)?.teacher_id === teacherId && (
+                <span className="ml-2 text-[#00a884] text-xs">(auto-filled from subject)</span>
+              )}
+            </label>
+            <select
+              value={teacherId}
+              onChange={(e) => setTeacherId(e.target.value)}
+              className="w-full px-3 py-2 bg-[#0b141a] border border-[#222d34] rounded text-[#e9edef] focus:outline-none focus:border-[#00a884]"
+            >
+              <option value="">Select teacher (optional)</option>
+              {teachers && teachers.map((t: any) => (
+                <option key={t.user_id || t.id} value={t.user_id || t.id}>
+                  {t.user?.display_name || t.user?.name || t.name || t.email}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="mb-4">
             <label className="block text-[#8696a0] text-sm mb-2">Class *</label>
             <select
               value={cbsId}
@@ -287,7 +328,7 @@ export function AddScheduleModal({
               <option value="">Select class</option>
               {classBatchSections.map((cbs: any) => (
                 <option key={cbs.id} value={cbs.id}>
-                  {cbs.class?.name} - {cbs.batch?.name} - {cbs.section?.name}
+                  {[cbs.batch?.name, cbs.section?.name].filter(Boolean).join(' · ')}
                 </option>
               ))}
             </select>
@@ -296,7 +337,7 @@ export function AddScheduleModal({
             <label className="block text-[#8696a0] text-sm mb-2">Subject</label>
             <select
               value={subjectId}
-              onChange={(e) => setSubjectId(e.target.value)}
+              onChange={(e) => handleSubjectChange(e.target.value)}
               className="w-full px-3 py-2 bg-[#0b141a] border border-[#222d34] rounded text-[#e9edef] focus:outline-none focus:border-[#00a884]"
             >
               <option value="">Select subject (optional)</option>
@@ -503,7 +544,7 @@ export function AddAnnouncementModal({
                     <option value="">Select class</option>
                     {classBatchSections.map((cbs: any) => (
                       <option key={cbs.id} value={cbs.id}>
-                        {cbs.class?.name} - {cbs.batch?.name} - {cbs.section?.name}
+                        {[cbs.batch?.name, cbs.section?.name].filter(Boolean).join(' · ')}
                       </option>
                     ))}
                   </select>
