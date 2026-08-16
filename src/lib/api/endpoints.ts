@@ -201,6 +201,8 @@ export const MediaAPI = {
 
 // ---- Calls -----------------------------------------------------------------
 export const CallsAPI = {
+  getTurnCredentials: () =>
+    api.get('/calls/turn-credentials').then((r) => r.data),
   initiate: (payload: {
     callee_id: string;
     conversation_id?: string;

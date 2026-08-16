@@ -8,29 +8,23 @@ import { useCallStore } from "@/store/callStore";
 import { getSocket } from "@/lib/socket";
 import { Phone, Video, Mic, MicOff, VideoOff, PhoneOff } from "lucide-react";
 
-const rtcConfig: RTCConfiguration = {
-  iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
-    // Free TURN servers for NAT traversal in production
-    {
-      urls: "turn:openrelay.metered.ca:80",
-      username: "openrelayproject",
-      credential: "openrelayproject",
-    },
-    {
-      urls: "turn:openrelay.metered.ca:443",
-      username: "openrelayproject",
-      credential: "openrelayproject",
-    },
-    {
-      urls: "turn:openrelay.metered.ca:443?transport=tcp",
-      username: "openrelayproject",
-      credential: "openrelayproject",
-    },
-  ],
-  iceCandidatePoolSize: 10,
-};
+const FALLBACK_ICE: RTCIceServer[] = [
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "stun:stun1.l.google.com:19302" },
+  { urls: "stun:stun2.l.google.com:19302" },
+];
+
+async function fetchIceServers(): Promise<RTCIceServer[]> {
+  try {
+    const data = await CallsAPI.getTurnCredentials();
+    if (Array.isArray(data?.iceServers) && data.iceServers.length > 0) {
+      return data.iceServers;
+    }
+  } catch {
+    // fall through
+  }
+  return FALLBACK_ICE;
+}
 
 export default function CallModal() {
   const { activeCall, setActiveCall } = useCallStore();
@@ -50,6 +44,7 @@ export default function CallModal() {
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const pendingOfferRef = useRef<any | null>(null);
   const offerSentRef = useRef(false);
+  const iceServersRef = useRef<RTCIceServer[]>(FALLBACK_ICE);
 
   // Resolve the other party's display name
   useEffect(() => {
@@ -106,7 +101,10 @@ export default function CallModal() {
   const createPeerConnection = useCallback(() => {
     if (peerConnectionRef.current) return peerConnectionRef.current;
 
-    const pc = new RTCPeerConnection(rtcConfig);
+    const pc = new RTCPeerConnection({
+      iceServers: iceServersRef.current,
+      iceCandidatePoolSize: 10,
+    });
     peerConnectionRef.current = pc;
 
     pc.onicecandidate = (event) => {
@@ -200,50 +198,54 @@ export default function CallModal() {
 
       const isVideo = activeCall.type === "video";
 
-      // Try to get media with graceful fallbacks:
-      // 1. video + audio  2. audio only  3. no media (proceed anyway)
-      const acquireStream = async (): Promise<MediaStream | null> => {
-        if (isVideo) {
-          try {
-            return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-          } catch {
-            // camera unavailable or denied — fall through to audio only
+      // Fetch fresh TURN credentials from backend first, then acquire media
+      fetchIceServers().then((servers) => {
+        if (!mounted) return;
+        iceServersRef.current = servers;
+
+        // Try to get media with graceful fallbacks:
+        // 1. video + audio  2. audio only  3. no media (proceed anyway)
+        const acquireStream = async (): Promise<MediaStream | null> => {
+          if (isVideo) {
+            try {
+              return await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            } catch {
+              // camera unavailable or denied — fall through to audio only
+            }
           }
-        }
-        try {
-          return await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
-        } catch {
-          // mic also unavailable — proceed with no local media
-          return null;
-        }
-      };
+          try {
+            return await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+          } catch {
+            return null;
+          }
+        };
 
-      acquireStream().then((stream) => {
-        if (!mounted) {
-          stream?.getTracks().forEach((track) => track.stop());
-          return;
-        }
+        acquireStream().then((stream) => {
+          if (!mounted) {
+            stream?.getTracks().forEach((track) => track.stop());
+            return;
+          }
 
-        if (stream) {
-          streamRef.current = stream;
-          if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-        }
-        // Mark ready regardless — even with no stream we can receive remote media
-        setLocalStreamReady(true);
+          if (stream) {
+            streamRef.current = stream;
+            if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+          }
+          setLocalStreamReady(true);
 
-        createPeerConnection();
+          createPeerConnection();
 
-        if (pendingOfferRef.current) {
-          const pendingOffer = pendingOfferRef.current;
-          pendingOfferRef.current = null;
-          handleOffer(pendingOffer).catch((err) => {
-            console.error("Call answer error:", err);
-          });
-        } else if (user.id === activeCall.caller_id) {
-          sendOffer().catch((err) => {
-            console.error("Call offer error:", err);
-          });
-        }
+          if (pendingOfferRef.current) {
+            const pendingOffer = pendingOfferRef.current;
+            pendingOfferRef.current = null;
+            handleOffer(pendingOffer).catch((err) => {
+              console.error("Call answer error:", err);
+            });
+          } else if (user.id === activeCall.caller_id) {
+            sendOffer().catch((err) => {
+              console.error("Call offer error:", err);
+            });
+          }
+        });
       });
     }
     return () => {
