@@ -22,6 +22,10 @@ import {
   CheckCircle,
   MessageSquareOff,
   Trash2,
+  Lock,
+  LockOpen,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 export default function ChatHeader({
@@ -38,6 +42,15 @@ export default function ChatHeader({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [iBlockedThem, setIBlockedThem] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+  const [showLockModal, setShowLockModal] = useState(false);
+  const [lockPin, setLockPin] = useState('');
+  const [lockPinConfirm, setLockPinConfirm] = useState('');
+  const [unlockPin, setUnlockPin] = useState('');
+  const [storedPin, setStoredPin] = useState('');
+  const [showPin, setShowPin] = useState(false);
+  const [lockError, setLockError] = useState('');
+  const [lockMode, setLockMode] = useState<'set' | 'unlock'>('set');
   const [toast, setToast] = useState<string | null>(null);
   const [toastType, setToastType] = useState<"success" | "error">("success");
   const [typingUser, setTypingUser] = useState<string | null>(null);
@@ -213,6 +226,34 @@ export default function ChatHeader({
     return "last seen recently";
   };
 
+  const handleLockChat = () => {
+    setIsMenuOpen(false);
+    setLockError('');
+    setLockPin('');
+    setLockPinConfirm('');
+    setUnlockPin('');
+    setShowPin(false);
+    setLockMode(isLocked ? 'unlock' : 'set');
+    setShowLockModal(true);
+  };
+
+  const handleLockSubmit = () => {
+    if (lockMode === 'set') {
+      if (lockPin.length < 4) { setLockError('PIN must be at least 4 digits.'); return; }
+      if (lockPin !== lockPinConfirm) { setLockError('PINs do not match.'); return; }
+      setStoredPin(lockPin);
+      setIsLocked(true);
+      setShowLockModal(false);
+      showToast('Chat locked with PIN');
+    } else {
+      if (unlockPin !== storedPin) { setLockError('Incorrect PIN.'); return; }
+      setIsLocked(false);
+      setStoredPin('');
+      setShowLockModal(false);
+      showToast('Chat unlocked');
+    }
+  };
+
   const menuItems = [
     {
       icon: <User className="w-4 h-4" />,
@@ -254,6 +295,11 @@ export default function ChatHeader({
         setIsMenuOpen(false);
         showToast("Disappearing messages coming soon");
       },
+    },
+    {
+      icon: isLocked ? <LockOpen className="w-4 h-4" /> : <Lock className="w-4 h-4" />,
+      label: isLocked ? "Unlock chat" : "Lock chat",
+      onClick: handleLockChat,
     },
     "divider" as const,
     {
@@ -325,10 +371,11 @@ export default function ChatHeader({
           </div>
         )}
         <div>
-          <h3 className="text-[#e9edef] font-semibold leading-tight">
+          <h3 className="text-[#e9edef] font-semibold leading-tight flex items-center gap-1.5">
             {conversation.type === "group"
               ? conversation.name || "Group"
               : otherParticipant?.display_name}
+            {isLocked && <Lock className="w-3 h-3 text-[#00a884] flex-shrink-0" />}
           </h3>
           <p
             className={`text-[11px] ${typingUser ? "text-[#00a884]" : "text-[#8696a0]"}`}
@@ -415,6 +462,87 @@ export default function ChatHeader({
           ${toastType === "error" ? "bg-red-500/90 text-white" : "bg-[#00a884] text-[#111b21]"}`}
         >
           {toast}
+        </div>
+      )}
+
+      {/* Lock chat PIN modal */}
+      {showLockModal && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#233138] rounded-2xl shadow-2xl p-6 w-80 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-[#00a884]/10 flex items-center justify-center">
+                <Lock className="w-5 h-5 text-[#00a884]" />
+              </div>
+              <div>
+                <p className="text-[#e9edef] font-semibold text-sm">
+                  {lockMode === 'set' ? 'Lock Chat' : 'Unlock Chat'}
+                </p>
+                <p className="text-[#8696a0] text-xs">
+                  {lockMode === 'set' ? 'Set a PIN to lock this chat' : 'Enter your PIN to unlock'}
+                </p>
+              </div>
+            </div>
+
+            {lockMode === 'set' ? (
+              <>
+                <div className="relative">
+                  <input
+                    type={showPin ? 'text' : 'password'}
+                    inputMode="numeric"
+                    maxLength={8}
+                    value={lockPin}
+                    onChange={(e) => { setLockPin(e.target.value.replace(/\D/g, '')); setLockError(''); }}
+                    placeholder="Enter PIN (4–8 digits)"
+                    className="w-full bg-[#111b21] border border-[#2a3942] text-[#e9edef] text-sm rounded-xl px-3 py-2.5 pr-10 outline-none focus:border-[#00a884] placeholder-[#4a5568] tracking-widest"
+                  />
+                  <button onClick={() => setShowPin(!showPin)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8696a0] hover:text-[#e9edef]">
+                    {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <input
+                  type={showPin ? 'text' : 'password'}
+                  inputMode="numeric"
+                  maxLength={8}
+                  value={lockPinConfirm}
+                  onChange={(e) => { setLockPinConfirm(e.target.value.replace(/\D/g, '')); setLockError(''); }}
+                  placeholder="Confirm PIN"
+                  className="w-full bg-[#111b21] border border-[#2a3942] text-[#e9edef] text-sm rounded-xl px-3 py-2.5 outline-none focus:border-[#00a884] placeholder-[#4a5568] tracking-widest"
+                />
+              </>
+            ) : (
+              <div className="relative">
+                <input
+                  type={showPin ? 'text' : 'password'}
+                  inputMode="numeric"
+                  maxLength={8}
+                  value={unlockPin}
+                  onChange={(e) => { setUnlockPin(e.target.value.replace(/\D/g, '')); setLockError(''); }}
+                  placeholder="Enter PIN"
+                  className="w-full bg-[#111b21] border border-[#2a3942] text-[#e9edef] text-sm rounded-xl px-3 py-2.5 pr-10 outline-none focus:border-[#00a884] placeholder-[#4a5568] tracking-widest"
+                />
+                <button onClick={() => setShowPin(!showPin)} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8696a0] hover:text-[#e9edef]">
+                  {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            )}
+
+            {lockError && <p className="text-red-400 text-xs">{lockError}</p>}
+
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setShowLockModal(false)}
+                className="px-4 py-2 rounded-xl text-sm text-[#8696a0] hover:text-[#e9edef] hover:bg-[#111b21] transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLockSubmit}
+                className="px-4 py-2 rounded-xl text-sm font-medium bg-[#00a884] hover:bg-[#008069] text-[#0b141a] transition-all"
+              >
+                {lockMode === 'set' ? 'Lock' : 'Unlock'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
